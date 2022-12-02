@@ -229,7 +229,7 @@ function startGUI () {
     gui.add(config, 'SIM_RESOLUTION', { '32': 32, '64': 64, '128': 128, '256': 256 }).name('sim resolution').onFinishChange(initFramebuffers);
     gui.add(config, 'PERIOD', 0, 5.0).name('Period');
     gui.add(config, 'EXPONENT', 0, 4.0).name('Exponent');
-    gui.add(config, 'RIDGE', 0, 0.5).name('Ridge');
+    gui.add(config, 'RIDGE', 0, 1.5).name('Ridge');
     gui.add(config, 'AMP', 0, 4.0).name('Amplitude');
     gui.add(config, 'LACUNARITY', 0, 2).name('Lacunarity');
     gui.add(config, 'GAIN', 0.0, 1.0).name('Gain');
