@@ -236,7 +236,7 @@ function startGUI () {
     gui.add(config, 'GAIN', 0.0, 1.0).name('Gain');
     gui.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
     gui.add(config, 'MONO').name('Mono');
-    // gui.add(config, 'SHADING').name('shading').onFinishChange(updateKeywords);
+    gui.add(config, 'SHADING').name('shading').onFinishChange(updateKeywords);
     // gui.add(config, 'COLORFUL').name('colorful');
     gui.add(config, 'PAUSED').name('paused').listen();
     
