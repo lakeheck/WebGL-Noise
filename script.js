@@ -71,7 +71,7 @@ let config = {
     SUNRAYS_RESOLUTION: 196,
     SHADING: true,
     SUNRAYS_WEIGHT: 0.5,
-    NOISE_TRANSLATE_SPEED: 1.0
+    NOISE_TRANSLATE_SPEED: 0.25
 }
 
 
@@ -232,6 +232,7 @@ function startGUI () {
     gui.add(config, 'RIDGE', 0, 1.5).name('Ridge');
     gui.add(config, 'AMP', 0, 4.0).name('Amplitude');
     gui.add(config, 'LACUNARITY', 0, 2).name('Lacunarity');
+    gui.add(config, 'NOISE_TRANSLATE_SPEED', 0, 2).name('Noise Translate Speed');
     gui.add(config, 'GAIN', 0.0, 1.0).name('Gain');
     gui.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
     gui.add(config, 'MONO').name('Mono');
