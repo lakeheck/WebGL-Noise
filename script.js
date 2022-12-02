@@ -51,6 +51,7 @@ let config = {
     DYE_RESOLUTION: 1024, //output res 
     ASPECT: 1.0,
     EXPONENT: 1.0,
+    PERIOD: 3.0,
     RIDGE: 1.0,
     AMP: 1.0,
     LACUNARITY: 1.0,
@@ -226,6 +227,7 @@ function startGUI () {
     var gui = new dat.GUI({ width: 300 });
     gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(initFramebuffers);
     gui.add(config, 'SIM_RESOLUTION', { '32': 32, '64': 64, '128': 128, '256': 256 }).name('sim resolution').onFinishChange(initFramebuffers);
+    gui.add(config, 'PERIOD', 0, 5.0).name('Period');
     gui.add(config, 'EXPONENT', 0, 4.0).name('Exponent');
     gui.add(config, 'RIDGE', 0, 0.5).name('Ridge');
     gui.add(config, 'AMP', 0, 4.0).name('Amplitude');
@@ -1702,14 +1704,14 @@ function step (dt) {
     //first we generate some noise to create a velocity map we can use 
     
     noiseProgram.bind();
-    gl.uniform1f(noiseProgram.uniforms.uPeriod, 0.75); 
+    gl.uniform1f(noiseProgram.uniforms.uPeriod, config.PERIOD); 
     gl.uniform3f(noiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
-    gl.uniform1f(noiseProgram.uniforms.uAmplitude, 1.); 
+    gl.uniform1f(noiseProgram.uniforms.uAmplitude, config.AMP); 
     gl.uniform1f(noiseProgram.uniforms.uSeed, noiseSeed); 
-    gl.uniform1f(noiseProgram.uniforms.uExponent, 1.); 
-    gl.uniform1f(noiseProgram.uniforms.uRidgeThreshold, 1.); 
+    gl.uniform1f(noiseProgram.uniforms.uExponent, config.EXPONENT); 
+    gl.uniform1f(noiseProgram.uniforms.uRidgeThreshold, config.RIDGE); 
     gl.uniform3f(noiseProgram.uniforms.uScale, 1., 1., 1.); 
-    gl.uniform1f(noiseProgram.uniforms.uAspect, config.VELOCITY_DISSIPATION); 
+    gl.uniform1f(noiseProgram.uniforms.uAspect, config.ASPECT); 
     blit(noise.write);
     noise.swap();
 
