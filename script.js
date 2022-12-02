@@ -798,6 +798,7 @@ void main()
     vec3 st = vec3(vUv, 0.0);
     vec4 color = fbm(st, uSeed); 
     color = vec4(snoise(st));
+    color = vec4(1,0,0,1);
     //output
     gl_FragColor = (color);
 
