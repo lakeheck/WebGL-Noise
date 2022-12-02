@@ -65,6 +65,7 @@ let config = {
     BLOOM_INTENSITY: 0.8,
     BLOOM_THRESHOLD: 0.6,
     BLOOM_SOFT_KNEE: 0.7,
+    PAUSED: false,
     SUNRAYS: true,
     SUNRAYS_RESOLUTION: 196,
     SHADING: true,
