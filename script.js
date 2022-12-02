@@ -1682,7 +1682,7 @@ function splat (x, y, dx, dy, color) {
     gl.uniform1f(splatColorClickProgram.uniforms.aspectRatio, canvas.width / canvas.height);
     gl.uniform2f(splatColorClickProgram.uniforms.point, x, y);
     gl.uniform1i(splatColorClickProgram.uniforms.uTarget, dye.read.attach(0));
-    gl.uniform1i(splatColorClickProgram.uniforms.uColor, picture.attach(1));
+    // gl.uniform1i(splatColorClickProgram.uniforms.uColor, picture.attach(1));
     gl.uniform1f(splatColorClickProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
     blit(dye.write);
     dye.swap();
