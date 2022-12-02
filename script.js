@@ -1442,10 +1442,10 @@ function initFramebuffers () {
 
     //use helper function to create pairs of buffer objects that will be ping pong'd for our sim 
     //this lets us define the buffer objects that we wil want to use for feedback 
-    if (dye == null)
-        dye = createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
+    if (noise == null)
+        noise = createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
     else //resize if needed 
-        dye = resizeDoubleFBO(dye, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
+        noise = resizeDoubleFBO(noise, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
 
     if (velocity == null)
         velocity = createDoubleFBO(simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
@@ -1709,7 +1709,8 @@ function step (dt) {
     gl.uniform1f(noiseProgram.uniforms.uRidgeThreshold, 1.); 
     gl.uniform3f(noiseProgram.uniforms.uScale, 1., 1., 1.); 
     gl.uniform1f(noiseProgram.uniforms.uAspect, config.VELOCITY_DISSIPATION); 
-    blit(noise);
+    blit(noise.write);
+    noise.swap();
 
     // curlProgram.bind();
     // gl.uniform2f(curlProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
@@ -1805,9 +1806,9 @@ function step (dt) {
 
 function render (target) {
     if (config.BLOOM)
-        applyBloom(dye.read, bloom);
+        applyBloom(noise.read, bloom);
         if (config.SUNRAYS) {
-            applySunrays(dye.read, dye.write, sunrays);
+            applySunrays(noise.read, noise.write, sunrays);
             blur(sunrays, sunraysTemp, 1);
         }
         
@@ -1848,7 +1849,7 @@ function render (target) {
     if (config.SHADING)
         gl.uniform2f(displayMaterial.uniforms.texelSize, 1.0 / width, 1.0 / height);
     // gl.uniform1i(displayMaterial.uniforms.uTexture, picture.attach(0)); //this works to get the image in the background, but is not actually
-    gl.uniform1i(displayMaterial.uniforms.uTexture, dye.read.attach(0));
+    gl.uniform1i(displayMaterial.uniforms.uTexture, noise.read.attach(0));
     if (config.BLOOM) {
         gl.uniform1i(displayMaterial.uniforms.uBloom, bloom.attach(1));
         gl.uniform1i(displayMaterial.uniforms.uDithering, ditheringTexture.attach(2));
