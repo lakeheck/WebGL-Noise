@@ -1820,11 +1820,9 @@ function render (target) {
             gl.disable(gl.BLEND);
         }
         
-        if (!config.TRANSPARENT)
-        drawColor(target, normalizeColor(config.BACK_COLOR));
-        if (target == null && config.TRANSPARENT)
-        drawCheckerboard(target);
-        drawDisplay(target);
+        if (!config.TRANSPARENT) drawColor(target, normalizeColor(config.BACK_COLOR));
+        if (target == null && config.TRANSPARENT) drawCheckerboard(target);
+        drawDisplay(noise);
         // blit(picture);
     
     }
