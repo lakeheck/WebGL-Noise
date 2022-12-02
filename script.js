@@ -790,7 +790,7 @@ vec4 fbm(vec3 st, float seed){
     #ifdef MONO
     t += a*rgbSimplex(freq*st, seed);
     #else
-    t += a*vec3(monoSimplex(freq*st, seed));
+    t += a*vec4(vec3(monoSimplex(freq*st, seed)),1.0);
     #endif
     freq*= 2.0;
     //freq = pow(2.0, float(i));
