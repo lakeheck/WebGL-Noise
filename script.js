@@ -1107,9 +1107,9 @@ let sunraysTemp;
 let noise;
 
 //load texture for dithering
-let ditheringTexture = createTextureAsync('LDR_LLL1_0.png');
+let ditheringTexture = createTextureAsync('img/LDR_LLL1_0.png');
 // let picture = createTextureAsync('img/flowers_fence.JPG');
-let picture = createTextureAsync('img/lake-heckaman-IMG_0997-dec-2022.jpg');
+// let picture = createTextureAsync('img/lake-heckaman-IMG_0997-dec-2022.jpg');
 // console.log('loaded picture successfully');
 
 //create all our shader programs 
