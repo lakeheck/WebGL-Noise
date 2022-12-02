@@ -4,11 +4,6 @@
 // Mobile promo section
 
 
-//accesss element by searching html tree 
-const promoPopup = document.getElementsByClassName('promo')[0];
-const promoPopupClose = document.getElementsByClassName('promo-close')[0];
-
-
 ////////////////////////////////////////////////////////////////    KEEPING THE BELOW FOR REFERENCE BUT NOT USED IN THIS PROJECT ///////////////////////////////////////////////
 //from https://github.com/PavelDoGreat/WebGL-Fluid-Simulation
 //test if the user is accessing from a mobile device 
@@ -55,20 +50,13 @@ let config = {
     SIM_RESOLUTION: 256, //simres
     DYE_RESOLUTION: 1024, //output res 
     ASPECT: 1.0,
-    FLOW: 0.05,
-    VELOCITYSCALE: 1.0,
-    CAPTURE_RESOLUTION: 512, //screen capture res 
-    DENSITY_DISSIPATION: 2.5, //def need to figure out this one, think perhaps bc im squaring the color in splatColor
-    VELOCITY_DISSIPATION: 2.15,
-    PRESSURE: 0.8,
-    PRESSURE_ITERATIONS: 30,
-    CURL: 30,
-    SPLAT_RADIUS: 0.25,
-    SPLAT_FORCE: 6000,
-    SHADING: true,
-    COLORFUL: false,
-    COLOR_UPDATE_SPEED: 10,
-    PAUSED: false,
+    EXPONENT: 1.0,
+    RIDGE: 1.0,
+    AMP: 1.0,
+    LACUNARITY: 1.0,
+    GAIN: 0.5,
+    OCTAVES: 4,
+    MONO: false,
     BACK_COLOR: { r: 0, g: 0, b: 0 },
     TRANSPARENT: false,
     BLOOM: false,
@@ -80,9 +68,6 @@ let config = {
     SUNRAYS: true,
     SUNRAYS_RESOLUTION: 196,
     SUNRAYS_WEIGHT: 0.5,
-    FORCE_MAP_ENABLE: true,
-    DENSITY_MAP_ENABLE: true, 
-    COLOR_MAP_ENABLE:true,
     NOISE_TRANSLATE_SPEED: 1.0
 }
 
@@ -239,13 +224,13 @@ function startGUI () {
     var gui = new dat.GUI({ width: 300 });
     gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(initFramebuffers);
     gui.add(config, 'SIM_RESOLUTION', { '32': 32, '64': 64, '128': 128, '256': 256 }).name('sim resolution').onFinishChange(initFramebuffers);
-    gui.add(config, 'DENSITY_DISSIPATION', 0, 4.0).name('density diffusion');
-    gui.add(config, 'FLOW', 0, 0.5).name('flow');
-    gui.add(config, 'VELOCITY_DISSIPATION', 0, 4.0).name('velocity diffusion');
-    gui.add(config, 'VELOCITYSCALE', 0, 10.0).name('velocity scale');
-    gui.add(config, 'PRESSURE', 0.0, 1.0).name('pressure');
-    gui.add(config, 'CURL', 0, 50).name('vorticity').step(1);
-    gui.add(config, 'SPLAT_RADIUS', 0.01, 1.0).name('splat radius');
+    gui.add(config, 'EXPONENT', 0, 4.0).name('Exponent');
+    gui.add(config, 'RIDGE', 0, 0.5).name('Ridge');
+    gui.add(config, 'AMP', 0, 4.0).name('Amplitude');
+    gui.add(config, 'LACUNARITY', 0, 2).name('Lacunarity');
+    gui.add(config, 'GAIN', 0.0, 1.0).name('Gain');
+    gui.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
+    gui.add(config, 'MONO').name('Mono');
     gui.add(config, 'SHADING').name('shading').onFinishChange(updateKeywords);
     // gui.add(config, 'COLORFUL').name('colorful');
     gui.add(config, 'PAUSED').name('paused').listen();
@@ -255,9 +240,9 @@ function startGUI () {
     } }, 'fun').name('Random splats');
     
     
-    let mapFolder = gui.addFolder('Maps');
-    mapFolder.add(config, 'FORCE_MAP_ENABLE').name('force map enable').onFinishChange(bindForceWithDensityMap);
-    mapFolder.add(config, 'DENSITY_MAP_ENABLE').name('density map enable').listen(); //adding listen() will update the ui if the parameter value changes elsewhere in the program 
+    // let mapFolder = gui.addFolder('Maps');
+    // mapFolder.add(config, 'FORCE_MAP_ENABLE').name('force map enable').onFinishChange(bindForceWithDensityMap);
+    // mapFolder.add(config, 'DENSITY_MAP_ENABLE').name('density map enable').listen(); //adding listen() will update the ui if the parameter value changes elsewhere in the program 
     // mapFolder.add(config, 'COLOR_MAP_ENABLE').name('color map enable');
 
 
@@ -290,7 +275,7 @@ function startGUI () {
         gui.close();
 }
 
-//TODO - dont understand the alchemy here 
+//TODO - dont understand the alchemy here but it works
 function isMobile () {
     return /Mobi|Android/i.test(navigator.userAgent);
 }
@@ -527,7 +512,7 @@ void main () {
 
 //lets get some noise! 
 //noise shader saved in project dir
-const noiseShader = compileShader(gl.FRAGMENT_SHADER, 'shaders/noiseShader.frag');
+const noiseShader = compileShader(gl.FRAGMENT_SHADER, 'noiseShader.frag');
 
 //TODO - seems like this should be updated to a gaussian blur or something 
 const blurShader = compileShader(gl.FRAGMENT_SHADER, `
@@ -1437,96 +1422,96 @@ function step (dt) {
     gl.uniform1f(noiseProgram.uniforms.uAspect, config.VELOCITY_DISSIPATION); 
     blit(noise);
 
-    curlProgram.bind();
-    gl.uniform2f(curlProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    gl.uniform1i(curlProgram.uniforms.uVelocity, velocity.read.attach(0));
-    blit(curl);
+    // curlProgram.bind();
+    // gl.uniform2f(curlProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
+    // gl.uniform1i(curlProgram.uniforms.uVelocity, velocity.read.attach(0));
+    // blit(curl);
     
-    vorticityProgram.bind();
-    gl.uniform2f(vorticityProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    gl.uniform1i(vorticityProgram.uniforms.uVelocity, velocity.read.attach(0));
-    gl.uniform1i(vorticityProgram.uniforms.uCurl, curl.attach(1));
-    gl.uniform1f(vorticityProgram.uniforms.curl, config.CURL);
-    gl.uniform1f(vorticityProgram.uniforms.dt, dt);
-    blit(velocity.write);
-    velocity.swap();
+    // vorticityProgram.bind();
+    // gl.uniform2f(vorticityProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
+    // gl.uniform1i(vorticityProgram.uniforms.uVelocity, velocity.read.attach(0));
+    // gl.uniform1i(vorticityProgram.uniforms.uCurl, curl.attach(1));
+    // gl.uniform1f(vorticityProgram.uniforms.curl, config.CURL);
+    // gl.uniform1f(vorticityProgram.uniforms.dt, dt);
+    // blit(velocity.write);
+    // velocity.swap();
     
-    divergenceProgram.bind();
-    gl.uniform2f(divergenceProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    gl.uniform1i(divergenceProgram.uniforms.uVelocity, velocity.read.attach(0));
-    blit(divergence);
+    // divergenceProgram.bind();
+    // gl.uniform2f(divergenceProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
+    // gl.uniform1i(divergenceProgram.uniforms.uVelocity, velocity.read.attach(0));
+    // blit(divergence);
     
-    clearProgram.bind();
-    gl.uniform1i(clearProgram.uniforms.uTexture, pressure.read.attach(0));
-    gl.uniform1f(clearProgram.uniforms.value, config.PRESSURE);
-    blit(pressure.write);
-    pressure.swap();
+    // clearProgram.bind();
+    // gl.uniform1i(clearProgram.uniforms.uTexture, pressure.read.attach(0));
+    // gl.uniform1f(clearProgram.uniforms.value, config.PRESSURE);
+    // blit(pressure.write);
+    // pressure.swap();
     
-    pressureProgram.bind();
-    gl.uniform2f(pressureProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    gl.uniform1i(pressureProgram.uniforms.uDivergence, divergence.attach(0));
-    for (let i = 0; i < config.PRESSURE_ITERATIONS; i++) {
-        gl.uniform1i(pressureProgram.uniforms.uPressure, pressure.read.attach(1));
-        blit(pressure.write);
-        pressure.swap();
-    }
+    // pressureProgram.bind();
+    // gl.uniform2f(pressureProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
+    // gl.uniform1i(pressureProgram.uniforms.uDivergence, divergence.attach(0));
+    // for (let i = 0; i < config.PRESSURE_ITERATIONS; i++) {
+    //     gl.uniform1i(pressureProgram.uniforms.uPressure, pressure.read.attach(1));
+    //     blit(pressure.write);
+    //     pressure.swap();
+    // }
     
-    gradientSubtractProgram.bind();
-    gl.uniform2f(gradientSubtractProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    gl.uniform1i(gradientSubtractProgram.uniforms.uPressure, pressure.read.attach(0));
-    gl.uniform1i(gradientSubtractProgram.uniforms.uVelocity, velocity.read.attach(1));
-    blit(velocity.write);
-    velocity.swap();
+    // gradientSubtractProgram.bind();
+    // gl.uniform2f(gradientSubtractProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
+    // gl.uniform1i(gradientSubtractProgram.uniforms.uPressure, pressure.read.attach(0));
+    // gl.uniform1i(gradientSubtractProgram.uniforms.uVelocity, velocity.read.attach(1));
+    // blit(velocity.write);
+    // velocity.swap();
 
-    if(config.FORCE_MAP_ENABLE){
-        splatVelProgram.bind();
-        gl.uniform1i(splatVelProgram.uniforms.uTarget, velocity.read.attach(0)); 
-        // gl.uniform1i(splatVelProgram.uniforms.uTarget, velocity.read.attach(0));
-        gl.uniform1i(splatVelProgram.uniforms.uDensityMap, picture.attach(1)); //density map
-        gl.uniform1i(splatVelProgram.uniforms.uForceMap, noise.attach(2)); //add noise for velocity map 
-        gl.uniform1f(splatVelProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-        gl.uniform1f(splatVelProgram.uniforms.uVelocityScale, config.VELOCITYSCALE);
-        gl.uniform2f(splatVelProgram.uniforms.point, 0, 0);
-        gl.uniform3f(splatVelProgram.uniforms.color, 0, 0, 1);
-        gl.uniform1i(splatVelProgram.uniforms.uClick, 0);
-        gl.uniform1f(splatVelProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-        blit(velocity.write);
-        velocity.swap();
-    }
+    // if(config.FORCE_MAP_ENABLE){
+    //     splatVelProgram.bind();
+    //     gl.uniform1i(splatVelProgram.uniforms.uTarget, velocity.read.attach(0)); 
+    //     // gl.uniform1i(splatVelProgram.uniforms.uTarget, velocity.read.attach(0));
+    //     gl.uniform1i(splatVelProgram.uniforms.uDensityMap, picture.attach(1)); //density map
+    //     gl.uniform1i(splatVelProgram.uniforms.uForceMap, noise.attach(2)); //add noise for velocity map 
+    //     gl.uniform1f(splatVelProgram.uniforms.aspectRatio, canvas.width / canvas.height);
+    //     gl.uniform1f(splatVelProgram.uniforms.uVelocityScale, config.VELOCITYSCALE);
+    //     gl.uniform2f(splatVelProgram.uniforms.point, 0, 0);
+    //     gl.uniform3f(splatVelProgram.uniforms.color, 0, 0, 1);
+    //     gl.uniform1i(splatVelProgram.uniforms.uClick, 0);
+    //     gl.uniform1f(splatVelProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
+    //     blit(velocity.write);
+    //     velocity.swap();
+    // }
 
-    if(config.DENSITY_MAP_ENABLE){
-        splatColorProgram.bind();
-        gl.uniform1f(splatColorProgram.uniforms.uFlow, config.FLOW);
-        gl.uniform1f(splatColorProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-        gl.uniform2f(splatColorProgram.uniforms.point, 0, 0);
-        gl.uniform1i(splatColorProgram.uniforms.uTarget, dye.read.attach(0));
-        gl.uniform1i(splatColorProgram.uniforms.uColor, picture.attach(1)); //color map
-        gl.uniform1i(splatColorProgram.uniforms.uDensityMap, picture.attach(2)); //density map
-        gl.uniform1i(splatVelProgram.uniforms.uClick, 0);
-        gl.uniform1f(splatColorProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-        blit(dye.write);
-        dye.swap();
-    }
+    // if(config.DENSITY_MAP_ENABLE){
+    //     splatColorProgram.bind();
+    //     gl.uniform1f(splatColorProgram.uniforms.uFlow, config.FLOW);
+    //     gl.uniform1f(splatColorProgram.uniforms.aspectRatio, canvas.width / canvas.height);
+    //     gl.uniform2f(splatColorProgram.uniforms.point, 0, 0);
+    //     gl.uniform1i(splatColorProgram.uniforms.uTarget, dye.read.attach(0));
+    //     gl.uniform1i(splatColorProgram.uniforms.uColor, picture.attach(1)); //color map
+    //     gl.uniform1i(splatColorProgram.uniforms.uDensityMap, picture.attach(2)); //density map
+    //     gl.uniform1i(splatVelProgram.uniforms.uClick, 0);
+    //     gl.uniform1f(splatColorProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
+    //     blit(dye.write);
+    //     dye.swap();
+    // }
     
-    advectionProgram.bind();
-    gl.uniform2f(advectionProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    if (!ext.supportLinearFiltering)
-    gl.uniform2f(advectionProgram.uniforms.dyeTexelSize, velocity.texelSizeX, velocity.texelSizeY);
-    let velocityId = velocity.read.attach(0);
-    gl.uniform1i(advectionProgram.uniforms.uVelocity, velocityId);
-    gl.uniform1i(advectionProgram.uniforms.uSource, velocityId);
-    gl.uniform1f(advectionProgram.uniforms.dt, dt);
-    gl.uniform1f(advectionProgram.uniforms.dissipation, config.VELOCITY_DISSIPATION);
-    blit(velocity.write);
-    velocity.swap();
+    // advectionProgram.bind();
+    // gl.uniform2f(advectionProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
+    // if (!ext.supportLinearFiltering)
+    // gl.uniform2f(advectionProgram.uniforms.dyeTexelSize, velocity.texelSizeX, velocity.texelSizeY);
+    // let velocityId = velocity.read.attach(0);
+    // gl.uniform1i(advectionProgram.uniforms.uVelocity, velocityId);
+    // gl.uniform1i(advectionProgram.uniforms.uSource, velocityId);
+    // gl.uniform1f(advectionProgram.uniforms.dt, dt);
+    // gl.uniform1f(advectionProgram.uniforms.dissipation, config.VELOCITY_DISSIPATION);
+    // blit(velocity.write);
+    // velocity.swap();
     
-    if (!ext.supportLinearFiltering)
-        gl.uniform2f(advectionProgram.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
-        gl.uniform1i(advectionProgram.uniforms.uVelocity, velocity.read.attach(0));
-        gl.uniform1i(advectionProgram.uniforms.uSource, dye.read.attach(1));
-        gl.uniform1f(advectionProgram.uniforms.dissipation, config.DENSITY_DISSIPATION);
-        blit(dye.write);
-    dye.swap();
+    // if (!ext.supportLinearFiltering)
+    //     gl.uniform2f(advectionProgram.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
+    //     gl.uniform1i(advectionProgram.uniforms.uVelocity, velocity.read.attach(0));
+    //     gl.uniform1i(advectionProgram.uniforms.uSource, dye.read.attach(1));
+    //     gl.uniform1f(advectionProgram.uniforms.dissipation, config.DENSITY_DISSIPATION);
+    //     blit(dye.write);
+    // dye.swap();
 }
 
 function render (target) {
