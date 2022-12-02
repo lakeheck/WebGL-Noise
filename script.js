@@ -787,11 +787,11 @@ vec4 fbm(vec3 st, float seed){
     float a = 1.0; 
     vec4 t = vec4(0.0);
     for(int i=0; i<4; i++){
-    #ifdef MONO
+    // #ifdef MONO
     t += a*rgbSimplex(freq*st, seed);
-    #else
-    t += a*vec4(vec3(monoSimplex(freq*st, seed)),1.0);
-    #endif
+    // #else
+    // t += a*vec4(vec3(monoSimplex(freq*st, seed)),1.0);
+    // #endif
     freq*= 2.0;
     //freq = pow(2.0, float(i));
     a*=G;
