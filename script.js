@@ -797,6 +797,7 @@ void main()
     //create vec3 with z value for translate
     vec3 st = vec3(vUv, 0.0);
     vec4 color = fbm(st, uSeed); 
+    color = vec4(1.0);
     //output
     gl_FragColor = (color);
 
