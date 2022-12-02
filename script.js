@@ -514,7 +514,7 @@ void main () {
 
 //lets get some noise! 
 //noise shader saved in project dir
-const noiseShader = compileShader(gl.FRAGMENT_SHADER, 'noiseShader.frag');
+const noiseShader = compileShader(gl.FRAGMENT_SHADER, 'glsl/noiseShader.frag');
 
 //TODO - seems like this should be updated to a gaussian blur or something 
 const blurShader = compileShader(gl.FRAGMENT_SHADER, `
