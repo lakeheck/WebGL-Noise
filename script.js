@@ -67,6 +67,7 @@ let config = {
     BLOOM_SOFT_KNEE: 0.7,
     SUNRAYS: true,
     SUNRAYS_RESOLUTION: 196,
+    SHADING: true,
     SUNRAYS_WEIGHT: 0.5,
     NOISE_TRANSLATE_SPEED: 1.0
 }
