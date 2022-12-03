@@ -1638,7 +1638,7 @@ function updateKeywords () {
 //actually calling our functions to make program work 
 updateKeywords();
 initFramebuffers();
-multipleSplats(parseInt(Math.random() * 20) + 5);
+// multipleSplats(parseInt(Math.random() * 20) + 5);
 let noiseSeed = 0.0; 
 let lastUpdateTime = Date.now();
 let colorUpdateTimer = 0.0;
