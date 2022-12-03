@@ -92,7 +92,7 @@ function pointerPrototype () {
 
 //initialize arrays 
 let pointers = [];
-let splatStack = [];
+// let splatStack = [];
 
 
 //add first pointer the array of pointers 
@@ -240,9 +240,9 @@ function startGUI () {
     // gui.add(config, 'COLORFUL').name('colorful');
     gui.add(config, 'PAUSED').name('paused').listen();
     
-    gui.add({ fun: () => {
-        splatStack.push(parseInt(Math.random() * 20) + 5);
-    } }, 'fun').name('Random splats');
+    // gui.add({ fun: () => {
+    //     splatStack.push(parseInt(Math.random() * 20) + 5);
+    // } }, 'fun').name('Random splats');
     
     
     // let mapFolder = gui.addFolder('Maps');
@@ -1460,15 +1460,15 @@ function initFramebuffers () {
     else //resize if needed 
         noise = resizeDoubleFBO(noise, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
 
-    if (velocity == null)
-        velocity = createDoubleFBO(simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
-    else //resize if needed 
-        velocity = resizeDoubleFBO(velocity, simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
+    // if (velocity == null)
+    //     velocity = createDoubleFBO(simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
+    // else //resize if needed 
+    //     velocity = resizeDoubleFBO(velocity, simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
     //other buffer objects that dont need feedback / ping-pong 
     //notice the filtering type is set to gl.NEAREST meaning we grab just a single px, no filtering 
-    divergence = createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-    curl       = createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-    pressure   = createDoubleFBO(simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
+    // divergence = createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
+    // curl       = createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
+    // pressure   = createDoubleFBO(simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
     //setup buffers for post process 
     initBloomFramebuffers();
     initSunraysFramebuffers();
@@ -1653,7 +1653,7 @@ function update () {
     if (resizeCanvas()) //resize if needed 
         initFramebuffers();
     updateColors(dt); //step through our sim 
-    applyInputs(); //take from ui
+    // applyInputs(); //take from ui
     if (!config.PAUSED)
         step(dt); //do a calculation step 
     render(null);
@@ -1680,30 +1680,30 @@ function resizeCanvas () {
 }
 
 
-function updateColors (dt) {//used to update the color map for each pointer, which happens slower than the entire sim updates 
-    if (!config.COLORFUL) return;
+// function updateColors (dt) {//used to update the color map for each pointer, which happens slower than the entire sim updates 
+//     if (!config.COLORFUL) return;
     
-    colorUpdateTimer += dt * config.COLOR_UPDATE_SPEED;
-    if (colorUpdateTimer >= 1) {
-        colorUpdateTimer = wrap(colorUpdateTimer, 0, 1);
-        pointers.forEach(p => {
-            p.color = generateColor();
-        });
-    }
-}
+//     colorUpdateTimer += dt * config.COLOR_UPDATE_SPEED;
+//     if (colorUpdateTimer >= 1) {
+//         colorUpdateTimer = wrap(colorUpdateTimer, 0, 1);
+//         pointers.forEach(p => {
+//             p.color = generateColor();
+//         });
+//     }
+// }
 
-function applyInputs () {
-    if (splatStack.length > 0) //if there are splats then recreate them
-    multipleSplats(splatStack.pop());//TODO - verify what elemetns of splatStack are and what splatStack.pop() will return (should be int??)
+// function applyInputs () {
+//     // if (splatStack.length > 0) //if there are splats then recreate them
+//     // multipleSplats(splatStack.pop());//TODO - verify what elemetns of splatStack are and what splatStack.pop() will return (should be int??)
     
     
-    pointers.forEach(p => { //create a splat for our pointers 
-        if (p.moved) {
-            p.moved = false;
-            splatPointer(p);
-        }
-    });
-}
+//     pointers.forEach(p => { //create a splat for our pointers 
+//         if (p.moved) {
+//             p.moved = false;
+//             // splatPointer(p);
+//         }
+//     });
+// }
 
 
 //the simulation, finally! 
@@ -2052,7 +2052,7 @@ window.addEventListener('keydown', e => {
     if (e.code === 'KeyP')
         config.PAUSED = !config.PAUSED;
     if (e.key === ' ')
-        splatStack.push(parseInt(Math.random() * 20) + 5);
+        // splatStack.push(parseInt(Math.random() * 20) + 5);
 });
 
 function updatePointerDownData (pointer, id, posX, posY) {
