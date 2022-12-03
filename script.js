@@ -1439,6 +1439,9 @@ function initFramebuffers () {
     let simRes = getResolution(config.SIM_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
     let dyeRes = getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
 
+    dyeRes.width = scaleByPixelRatio(canvas.clientWidth);
+    dyeRes.height = scaleByPixelRatio(canvas.clientHeight);
+
     const texType = ext.halfFloatTexType; //TODO - should be 32 bit floats? 
     const rgba    = ext.formatRGBA;
     const rg      = ext.formatRG;
@@ -1446,6 +1449,7 @@ function initFramebuffers () {
     const filtering = ext.supportLinearFiltering ? gl.LINEAR : gl.NEAREST;
 
     gl.disable(gl.BLEND);
+
 
     //use helper function to create pairs of buffer objects that will be ping pong'd for our sim 
     //this lets us define the buffer objects that we wil want to use for feedback 
@@ -2156,6 +2160,9 @@ function getTextureScale (texture, width, height) {
     };
 }
 
+
+//check for differences in pixel size based on diplay
+// the px ratio gives the ratio of one physical px to one css px
 function scaleByPixelRatio (input) {
     let pixelRatio = window.devicePixelRatio || 1;
     return Math.floor(input * pixelRatio);
