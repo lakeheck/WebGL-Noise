@@ -1390,10 +1390,10 @@ function CHECK_FRAMEBUFFER_STATUS () {
 //actual simulation construction
 
 let dye;
-let velocity;
-let divergence;
-let curl;
-let pressure;
+// let velocity;
+// let divergence;
+// let curl;
+// let pressure;
 let bloom;
 let bloomFramebuffers = [];
 let sunrays;
@@ -1417,16 +1417,16 @@ const bloomBlurProgram          = new Program(baseVertexShader, bloomBlurShader)
 const bloomFinalProgram         = new Program(baseVertexShader, bloomFinalShader);
 const sunraysMaskProgram        = new Program(baseVertexShader, sunraysMaskShader);
 const sunraysProgram            = new Program(baseVertexShader, sunraysShader);
-const splatProgram              = new Program(baseVertexShader, splatShader);
-const splatColorClickProgram    = new Program(baseVertexShader, splatColorClickShader);
-const splatVelProgram           = new Program(baseVertexShader, splatVelShader); //added to support color / vel map
-const splatColorProgram         = new Program(baseVertexShader, splatColorShader); //added to support color / vel map
-const advectionProgram          = new Program(baseVertexShader, advectionShader);
-const divergenceProgram         = new Program(baseVertexShader, divergenceShader);
-const curlProgram               = new Program(baseVertexShader, curlShader);
-const vorticityProgram          = new Program(baseVertexShader, vorticityShader);
-const pressureProgram           = new Program(baseVertexShader, pressureShader);
-const gradientSubtractProgram   = new Program(baseVertexShader, gradientSubtractShader);
+// const splatProgram              = new Program(baseVertexShader, splatShader);
+// const splatColorClickProgram    = new Program(baseVertexShader, splatColorClickShader);
+// const splatVelProgram           = new Program(baseVertexShader, splatVelShader); //added to support color / vel map
+// const splatColorProgram         = new Program(baseVertexShader, splatColorShader); //added to support color / vel map
+// const advectionProgram          = new Program(baseVertexShader, advectionShader);
+// const divergenceProgram         = new Program(baseVertexShader, divergenceShader);
+// const curlProgram               = new Program(baseVertexShader, curlShader);
+// const vorticityProgram          = new Program(baseVertexShader, vorticityShader);
+// const pressureProgram           = new Program(baseVertexShader, pressureShader);
+// const gradientSubtractProgram   = new Program(baseVertexShader, gradientSubtractShader);
 const noiseProgram              = new Program(baseVertexShader, noiseShader); //noise generator 
 
 
@@ -1439,6 +1439,8 @@ function initFramebuffers () {
     let simRes = getResolution(config.SIM_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
     let dyeRes = getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
 
+
+    //we want to rescale the texture based on the canvas
     dyeRes.width = scaleByPixelRatio(canvas.clientWidth);
     dyeRes.height = scaleByPixelRatio(canvas.clientHeight);
 
@@ -1834,25 +1836,25 @@ function render (target) {
         if (target == null && config.TRANSPARENT) drawCheckerboard(target);
         drawDisplay(noise);
         // blit(picture);
+
+}
+
+function drawColor (target, color) {
+    colorProgram.bind();
+    gl.uniform4f(colorProgram.uniforms.color, color.r, color.g, color.b, 1);
+    blit(target);
+}
+
+function drawCheckerboard (target) {
+    checkerboardProgram.bind();
+    gl.uniform1f(checkerboardProgram.uniforms.aspectRatio, canvas.width / canvas.height);
+    blit(target);
+}
+
+function drawDisplay (target) {
+    let width = target == null ? gl.drawingBufferWidth : target.width;
+    let height = target == null ? gl.drawingBufferHeight : target.height;
     
-    }
-    
-    function drawColor (target, color) {
-        colorProgram.bind();
-        gl.uniform4f(colorProgram.uniforms.color, color.r, color.g, color.b, 1);
-        blit(target);
-    }
-    
-    function drawCheckerboard (target) {
-        checkerboardProgram.bind();
-        gl.uniform1f(checkerboardProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-        blit(target);
-    }
-    
-    function drawDisplay (target) {
-        let width = target == null ? gl.drawingBufferWidth : target.width;
-        let height = target == null ? gl.drawingBufferHeight : target.height;
-        
     displayMaterial.bind();
     if (config.SHADING)
         gl.uniform2f(displayMaterial.uniforms.texelSize, 1.0 / width, 1.0 / height);
@@ -1940,49 +1942,49 @@ function blur (target, temp, iterations) {
     }
 }
 
-function splatPointer (pointer) {
-    let dx = pointer.deltaX * config.SPLAT_FORCE;
-    let dy = pointer.deltaY * config.SPLAT_FORCE;
-    splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
-}
+// function splatPointer (pointer) {
+//     let dx = pointer.deltaX * config.SPLAT_FORCE;
+//     let dy = pointer.deltaY * config.SPLAT_FORCE;
+//     splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
+// }
 
-function multipleSplats (amount) {
-    for (let i = 0; i < amount; i++) {
-        const color = generateColor();
-        color.r *= 10.0;
-        color.g *= 10.0;
-        color.b *= 10.0;
-        const x = Math.random();
-        const y = Math.random();
-        const dx = 1000 * (Math.random() - 0.5);
-        const dy = 1000 * (Math.random() - 0.5);
-        splat(x, y, dx, dy, color);
-    }
-}
+// function multipleSplats (amount) {
+//     for (let i = 0; i < amount; i++) {
+//         const color = generateColor();
+//         color.r *= 10.0;
+//         color.g *= 10.0;
+//         color.b *= 10.0;
+//         const x = Math.random();
+//         const y = Math.random();
+//         const dx = 1000 * (Math.random() - 0.5);
+//         const dy = 1000 * (Math.random() - 0.5);
+//         splat(x, y, dx, dy, color);
+//     }
+// }
 
-function splat (x, y, dx, dy, color) {
-    //when we click, we just want to add velocity to the sim locally 
-    //so we use the delta in position between clicks and add that to the vel map
-    splatProgram.bind();
-    gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
-    gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-    gl.uniform2f(splatProgram.uniforms.point, x, y);
-    gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0.0);
-    gl.uniform1f(splatProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-    blit(velocity.write);
-    velocity.swap();
+// function splat (x, y, dx, dy, color) {
+//     //when we click, we just want to add velocity to the sim locally 
+//     //so we use the delta in position between clicks and add that to the vel map
+//     splatProgram.bind();
+//     gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
+//     gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
+//     gl.uniform2f(splatProgram.uniforms.point, x, y);
+//     gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0.0);
+//     gl.uniform1f(splatProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
+//     blit(velocity.write);
+//     velocity.swap();
 
-    //pulling the color to add to the sim from a colormap 
-    splatColorClickProgram.bind();
-    gl.uniform1f(splatColorClickProgram.uniforms.uFlow, config.FLOW);
-    gl.uniform1f(splatColorClickProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-    gl.uniform2f(splatColorClickProgram.uniforms.point, x, y);
-    // gl.uniform1i(splatColorClickProgram.uniforms.uTarget, dye.read.attach(0));
-    // gl.uniform1i(splatColorClickProgram.uniforms.uColor, picture.attach(1));
-    // gl.uniform1f(splatColorClickProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-    // blit(dye.write);
-    // dye.swap();
-}
+//     //pulling the color to add to the sim from a colormap 
+//     splatColorClickProgram.bind();
+//     gl.uniform1f(splatColorClickProgram.uniforms.uFlow, config.FLOW);
+//     gl.uniform1f(splatColorClickProgram.uniforms.aspectRatio, canvas.width / canvas.height);
+//     gl.uniform2f(splatColorClickProgram.uniforms.point, x, y);
+//     // gl.uniform1i(splatColorClickProgram.uniforms.uTarget, dye.read.attach(0));
+//     // gl.uniform1i(splatColorClickProgram.uniforms.uColor, picture.attach(1));
+//     // gl.uniform1f(splatColorClickProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
+//     // blit(dye.write);
+//     // dye.swap();
+// }
 
 function correctRadius (radius) {
     let aspectRatio = canvas.width / canvas.height;
