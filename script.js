@@ -1652,7 +1652,7 @@ function update () {
     noiseSeed += dt * config.NOISE_TRANSLATE_SPEED;
     if (resizeCanvas()) //resize if needed 
         initFramebuffers();
-    updateColors(dt); //step through our sim 
+    // updateColors(dt); //step through our sim 
     // applyInputs(); //take from ui
     if (!config.PAUSED)
         step(dt); //do a calculation step 
