@@ -1,43 +1,10 @@
 
 'use strict';
 
-// Mobile promo section
-
-
-////////////////////////////////////////////////////////////////    KEEPING THE BELOW FOR REFERENCE BUT NOT USED IN THIS PROJECT ///////////////////////////////////////////////
-//from https://github.com/PavelDoGreat/WebGL-Fluid-Simulation
-//test if the user is accessing from a mobile device 
-// if (isMobile()) {
-//     setTimeout(() => {
-//         promoPopup.style.display = 'table';
-//     }, 20000);
-// }
-
-//callback fxn to listen for click event on the "Close" x on the popup
-//notice we are listening for callback from the promo-close element, but the action is taken on the main promo element 
-// promoPopupClose.addEventListener('click', e => {
-//     promoPopup.style.display = 'none';
-// });
-
-
-//callback to listen for click on link 
-// const appleLink = document.getElementById('apple_link');
-// appleLink.addEventListener('click', e => {
-//     ga('send', 'event', 'link promo', 'app');
-//     //define what link to actually open when this element is clicked 
-//     window.open('https://apps.apple.com/us/app/fluid-simulation/id1443124993');
-// });
-
-//callback for link 
-// const googleLink = document.getElementById('google_link');
-// googleLink.addEventListener('click', e => {
-//     ga('send', 'event', 'link promo', 'app');
-//     window.open('https://play.google.com/store/apps/details?id=games.paveldogreat.fluidsimfree');
-// });
 
 // Simulation section
 
-//this is like selenium, where the fxn will return a list of elements that meet your search criteria 
+//getElementsByTagName fxn will return a list of elements that meet your search criteria (familiar if used any browser traverse lib like selenium)
 const canvas = document.getElementsByTagName('canvas')[0];
 //function that will adjust canvas bounds in case screen size changes 
 resizeCanvas();
@@ -237,33 +204,7 @@ function startGUI () {
     gui.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
     gui.add(config, 'MONO').name('Mono');
     gui.add(config, 'SHADING').name('shading').onFinishChange(updateKeywords);
-    // gui.add(config, 'COLORFUL').name('colorful');
     gui.add(config, 'PAUSED').name('paused').listen();
-    
-    // gui.add({ fun: () => {
-    //     splatStack.push(parseInt(Math.random() * 20) + 5);
-    // } }, 'fun').name('Random splats');
-    
-    
-    // let mapFolder = gui.addFolder('Maps');
-    // mapFolder.add(config, 'FORCE_MAP_ENABLE').name('force map enable').onFinishChange(bindForceWithDensityMap);
-    // mapFolder.add(config, 'DENSITY_MAP_ENABLE').name('density map enable').listen(); //adding listen() will update the ui if the parameter value changes elsewhere in the program 
-    // mapFolder.add(config, 'COLOR_MAP_ENABLE').name('color map enable');
-
-
-    // let bloomFolder = gui.addFolder('Bloom');
-    // bloomFolder.add(config, 'BLOOM').name('enabled').onFinishChange(updateKeywords);
-    // bloomFolder.add(config, 'BLOOM_INTENSITY', 0.1, 2.0).name('intensity');
-    // bloomFolder.add(config, 'BLOOM_THRESHOLD', 0.0, 1.0).name('threshold');
-
-    let sunraysFolder = gui.addFolder('Sunrays');
-    sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(updateKeywords);
-    sunraysFolder.add(config, 'SUNRAYS_WEIGHT', 0.3, 1.0).name('weight');
-
-    let captureFolder = gui.addFolder('Capture');
-    captureFolder.addColor(config, 'BACK_COLOR').name('background color');
-    captureFolder.add(config, 'TRANSPARENT').name('transparent');
-    captureFolder.add({ fun: captureScreenshot }, 'fun').name('take screenshot');
 
     //create a function to assign to a button, here linking my github
     let github = gui.add({ fun : () => {
@@ -840,47 +781,6 @@ const copyShader = compileShader(gl.FRAGMENT_SHADER, `
     }
 `);
 
-const clearShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision mediump float;
-    precision mediump sampler2D;
-
-    varying highp vec2 vUv;
-    uniform sampler2D uTexture;
-    uniform float value;
-
-    void main () {
-        gl_FragColor = value * texture2D(uTexture, vUv);
-    }
-`);
-
-const colorShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision mediump float;
-
-    uniform vec4 color;
-
-    void main () {
-        gl_FragColor = color;
-    }
-`);
-
-const checkerboardShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision highp float;
-    precision highp sampler2D;
-
-    varying vec2 vUv;
-    uniform sampler2D uTexture;
-    uniform float aspectRatio;
-
-    #define SCALE 25.0
-
-    void main () {
-        vec2 uv = floor(vUv * SCALE * vec2(aspectRatio, 1.0));
-        float v = mod(uv.x + uv.y, 2.0);
-        v = v * 0.1 + 0.8;
-        gl_FragColor = vec4(vec3(v), 1.0);
-    }
-`);
-
 const displayShaderSource = `
     precision highp float;
     precision highp sampler2D;
@@ -1058,275 +958,6 @@ const sunraysShader = compileShader(gl.FRAGMENT_SHADER, `
     }
 `);
 
-const splatShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision highp float;
-    precision highp sampler2D;
-
-    varying vec2 vUv;
-    uniform sampler2D uTarget;
-    uniform float aspectRatio;
-    uniform vec3 color;
-    uniform vec2 point;
-    uniform float radius;
-
-    void main () {
-        vec2 p = vUv - point.xy;
-        p.x *= aspectRatio;
-        vec3 splat = exp(-dot(p, p) / radius) * color;
-        vec3 base = texture2D(uTarget, vUv).xyz;
-        gl_FragColor = vec4(base + splat, 1.0);
-    }
-`);
-
-const splatColorClickShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision highp float;
-    precision highp sampler2D;
-
-    varying vec2 vUv;
-    uniform sampler2D uTarget;
-    uniform sampler2D uColor;
-    uniform float aspectRatio;
-    uniform vec3 color;
-    uniform vec2 point;
-    uniform float radius;
-    uniform float uFlow;
-
-    void main () {
-        vec2 p = vUv - point.xy;
-        p.x *= aspectRatio;
-        vec3 splat = exp(-dot(p, p) / radius) * texture2D(uColor, vUv).xyz;
-        splat *= uFlow;
-        vec3 base = texture2D(uTarget, vUv).xyz;
-        gl_FragColor = vec4(base + splat, 1.0);
-    }
-`);
-
-const splatVelShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision highp float;
-    precision highp sampler2D;
-
-
-    uniform int uClick;
-    varying vec2 vUv;
-    uniform sampler2D uTarget;
-    uniform float aspectRatio;
-    uniform vec3 color;
-    uniform vec2 point;
-    uniform float radius;
-    uniform float uVelocityScale;
-    uniform sampler2D uDensityMap;
-    uniform sampler2D uForceMap;
-
-    void main () {
-        vec2 p = vUv - point.xy;
-        p.x *= aspectRatio;
-        vec3 splat = vec3(0.0);
-        splat = smoothstep(0.0, 1.0, texture2D(uDensityMap, vUv).xyz) * (normalize(texture2D(uForceMap, vUv).rgb)) * uVelocityScale;
-        splat.z = 0.0;
-        vec3 base = texture2D(uTarget, vUv).xyz;
-        gl_FragColor = vec4(base + splat, 1.0);
-    }
-`);
-
-const splatColorShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision highp float;
-    precision highp sampler2D;
-
-    varying vec2 vUv;
-    uniform sampler2D uTarget;
-    uniform float aspectRatio;
-    uniform vec2 point;
-    uniform float radius;
-
-    uniform float uFlow;
-    
-    uniform int uClick;
-    uniform sampler2D uDensityMap;
-    uniform sampler2D uColor;
-
-    void main () {
-        vec2 p = vUv - point.xy;
-        p.x *= aspectRatio;
-
-        vec3 splat = vec3(0);
-        splat = texture2D(uDensityMap, vUv).xyz * texture2D(uColor, vUv).xyz;  
-        splat = smoothstep(0.0, 1.0, splat);
-        splat *= uFlow;
-        vec3 base = texture2D(uTarget, vUv).xyz;
-        gl_FragColor = vec4(base + splat, 1.0);
-    }
-`);
-
-//here we use keywords to define whether we need to use manual filtering for advection 
-const advectionShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision highp float;
-    precision highp sampler2D;
-
-    varying vec2 vUv;
-    uniform sampler2D uVelocity;
-    uniform sampler2D uSource;
-    uniform vec2 texelSize;
-    uniform vec2 dyeTexelSize;
-    uniform float dt;
-    uniform float dissipation;
-
-    vec4 bilerp (sampler2D sam, vec2 uv, vec2 tsize) {
-        vec2 st = uv / tsize - 0.5;
-
-        vec2 iuv = floor(st);
-        vec2 fuv = fract(st);
-
-        vec4 a = texture2D(sam, (iuv + vec2(0.5, 0.5)) * tsize);
-        vec4 b = texture2D(sam, (iuv + vec2(1.5, 0.5)) * tsize);
-        vec4 c = texture2D(sam, (iuv + vec2(0.5, 1.5)) * tsize);
-        vec4 d = texture2D(sam, (iuv + vec2(1.5, 1.5)) * tsize);
-
-        return mix(mix(a, b, fuv.x), mix(c, d, fuv.x), fuv.y);
-    }
-
-    void main () {
-    #ifdef MANUAL_FILTERING
-        vec2 coord = vUv - dt * bilerp(uVelocity, vUv, texelSize).xy * texelSize;
-        vec4 result = bilerp(uSource, coord, dyeTexelSize);
-    #else
-        vec2 coord = vUv - dt * texture2D(uVelocity, vUv).xy * texelSize;
-        vec4 result = texture2D(uSource, coord);
-    #endif
-        float decay = 1.0 + dissipation * dt;
-        gl_FragColor = result / decay;
-    }`,
-    ext.supportLinearFiltering ? null : ['MANUAL_FILTERING'] //keyword assignment 
-);
-
-const divergenceShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision mediump float;
-    precision mediump sampler2D;
-
-    varying highp vec2 vUv;
-    varying highp vec2 vL;
-    varying highp vec2 vR;
-    varying highp vec2 vT;
-    varying highp vec2 vB;
-    uniform sampler2D uVelocity;
-
-    void main () {
-        float L = texture2D(uVelocity, vL).x;
-        float R = texture2D(uVelocity, vR).x;
-        float T = texture2D(uVelocity, vT).y;
-        float B = texture2D(uVelocity, vB).y;
-
-        vec2 C = texture2D(uVelocity, vUv).xy;
-        if (vL.x < 0.0) { L = -C.x; }
-        if (vR.x > 1.0) { R = -C.x; }
-        if (vT.y > 1.0) { T = -C.y; }
-        if (vB.y < 0.0) { B = -C.y; }
-
-        float div = 0.5 * (R - L + T - B);
-        gl_FragColor = vec4(div, 0.0, 0.0, 1.0);
-    }
-`);
-
-const curlShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision mediump float;
-    precision mediump sampler2D;
-
-    varying highp vec2 vUv;
-    varying highp vec2 vL;
-    varying highp vec2 vR;
-    varying highp vec2 vT;
-    varying highp vec2 vB;
-    uniform sampler2D uVelocity;
-
-    void main () {
-        float L = texture2D(uVelocity, vL).y;
-        float R = texture2D(uVelocity, vR).y;
-        float T = texture2D(uVelocity, vT).x;
-        float B = texture2D(uVelocity, vB).x;
-        float vorticity = R - L - T + B;
-        gl_FragColor = vec4(0.5 * vorticity, 0.0, 0.0, 1.0);
-    }
-`);
-
-const vorticityShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision highp float;
-    precision highp sampler2D;
-
-    varying vec2 vUv;
-    varying vec2 vL;
-    varying vec2 vR;
-    varying vec2 vT;
-    varying vec2 vB;
-    uniform sampler2D uVelocity;
-    uniform sampler2D uCurl;
-    uniform float curl;
-    uniform float dt;
-
-    void main () {
-        float L = texture2D(uCurl, vL).x;
-        float R = texture2D(uCurl, vR).x;
-        float T = texture2D(uCurl, vT).x;
-        float B = texture2D(uCurl, vB).x;
-        float C = texture2D(uCurl, vUv).x;
-
-        vec2 force = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L));
-        force /= length(force) + 0.0001;
-        force *= curl * C;
-        force.y *= -1.0;
-
-        vec2 velocity = texture2D(uVelocity, vUv).xy;
-        velocity += force * dt;
-        velocity = min(max(velocity, -1000.0), 1000.0);
-        gl_FragColor = vec4(velocity, 0.0, 1.0);
-    }
-`);
-
-const pressureShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision mediump float;
-    precision mediump sampler2D;
-
-    varying highp vec2 vUv;
-    varying highp vec2 vL;
-    varying highp vec2 vR;
-    varying highp vec2 vT;
-    varying highp vec2 vB;
-    uniform sampler2D uPressure;
-    uniform sampler2D uDivergence;
-
-    void main () {
-        float L = texture2D(uPressure, vL).x;
-        float R = texture2D(uPressure, vR).x;
-        float T = texture2D(uPressure, vT).x;
-        float B = texture2D(uPressure, vB).x;
-        float C = texture2D(uPressure, vUv).x;
-        float divergence = texture2D(uDivergence, vUv).x;
-        float pressure = (L + R + B + T - divergence) * 0.25;
-        gl_FragColor = vec4(pressure, 0.0, 0.0, 1.0);
-    }
-`);
-
-const gradientSubtractShader = compileShader(gl.FRAGMENT_SHADER, `
-    precision mediump float;
-    precision mediump sampler2D;
-
-    varying highp vec2 vUv;
-    varying highp vec2 vL;
-    varying highp vec2 vR;
-    varying highp vec2 vT;
-    varying highp vec2 vB;
-    uniform sampler2D uPressure;
-    uniform sampler2D uVelocity;
-
-    void main () {
-        float L = texture2D(uPressure, vL).x;
-        float R = texture2D(uPressure, vR).x;
-        float T = texture2D(uPressure, vT).x;
-        float B = texture2D(uPressure, vB).x;
-        vec2 velocity = texture2D(uVelocity, vUv).xy;
-        velocity.xy -= vec2(R - L, T - B);
-        gl_FragColor = vec4(velocity, 0.0, 1.0);
-    }
-`);
-
 //Creating a simple mesh for rendering, using two triangles (ie subdivide canvas with diagonal line from (-1,-1) to (1,1))
 //we need 4 vertices 0,1,2,3
 //and each vertex gets 2 attributes which is their position in x,y space 
@@ -1368,9 +999,7 @@ const blit = (() => {
         {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
-        }
-        // CHECK_FRAMEBUFFER_STATUS();
-        
+        }        
         
         //do the actual drawing 
         //here we will use a triangle mesh 
@@ -1388,12 +1017,6 @@ function CHECK_FRAMEBUFFER_STATUS () {
 }
 
 //actual simulation construction
-
-let dye;
-// let velocity;
-// let divergence;
-// let curl;
-// let pressure;
 let bloom;
 let bloomFramebuffers = [];
 let sunrays;
@@ -1402,31 +1025,19 @@ let noise;
 
 //load texture for dithering
 let ditheringTexture = createTextureAsync('img/LDR_LLL1_0.png');
-// let picture = createTextureAsync('img/flowers_fence.JPG');
-// let picture = createTextureAsync('img/lake-heckaman-IMG_0997-dec-2022.jpg');
-// console.log('loaded picture successfully');
 
 //create all our shader programs 
+
+//POST SHADERS
 const blurProgram               = new Program(blurVertexShader, blurShader);
 const copyProgram               = new Program(baseVertexShader, copyShader);
-const clearProgram              = new Program(baseVertexShader, clearShader);
-const colorProgram              = new Program(baseVertexShader, colorShader);
-const checkerboardProgram       = new Program(baseVertexShader, checkerboardShader);
 const bloomPrefilterProgram     = new Program(baseVertexShader, bloomPrefilterShader);
 const bloomBlurProgram          = new Program(baseVertexShader, bloomBlurShader);
 const bloomFinalProgram         = new Program(baseVertexShader, bloomFinalShader);
 const sunraysMaskProgram        = new Program(baseVertexShader, sunraysMaskShader);
 const sunraysProgram            = new Program(baseVertexShader, sunraysShader);
-// const splatProgram              = new Program(baseVertexShader, splatShader);
-// const splatColorClickProgram    = new Program(baseVertexShader, splatColorClickShader);
-// const splatVelProgram           = new Program(baseVertexShader, splatVelShader); //added to support color / vel map
-// const splatColorProgram         = new Program(baseVertexShader, splatColorShader); //added to support color / vel map
-// const advectionProgram          = new Program(baseVertexShader, advectionShader);
-// const divergenceProgram         = new Program(baseVertexShader, divergenceShader);
-// const curlProgram               = new Program(baseVertexShader, curlShader);
-// const vorticityProgram          = new Program(baseVertexShader, vorticityShader);
-// const pressureProgram           = new Program(baseVertexShader, pressureShader);
-// const gradientSubtractProgram   = new Program(baseVertexShader, gradientSubtractShader);
+
+//CONTENT SHADERS
 const noiseProgram              = new Program(baseVertexShader, noiseShader); //noise generator 
 
 
@@ -1436,7 +1047,6 @@ const noiseProgram              = new Program(baseVertexShader, noiseShader); //
 const displayMaterial = new Material(baseVertexShader, displayShaderSource);
 
 function initFramebuffers () {
-    let simRes = getResolution(config.SIM_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
     let dyeRes = getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
 
 
@@ -1459,16 +1069,6 @@ function initFramebuffers () {
         noise = createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
     else //resize if needed 
         noise = resizeDoubleFBO(noise, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
-
-    // if (velocity == null)
-    //     velocity = createDoubleFBO(simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
-    // else //resize if needed 
-    //     velocity = resizeDoubleFBO(velocity, simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
-    //other buffer objects that dont need feedback / ping-pong 
-    //notice the filtering type is set to gl.NEAREST meaning we grab just a single px, no filtering 
-    // divergence = createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-    // curl       = createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-    // pressure   = createDoubleFBO(simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
     //setup buffers for post process 
     initBloomFramebuffers();
     initSunraysFramebuffers();
@@ -1638,7 +1238,6 @@ function updateKeywords () {
 //actually calling our functions to make program work 
 updateKeywords();
 initFramebuffers();
-// multipleSplats(parseInt(Math.random() * 20) + 5);
 let noiseSeed = 0.0; 
 let lastUpdateTime = Date.now();
 let colorUpdateTimer = 0.0;
@@ -1652,8 +1251,6 @@ function update () {
     noiseSeed += dt * config.NOISE_TRANSLATE_SPEED;
     if (resizeCanvas()) //resize if needed 
         initFramebuffers();
-    // updateColors(dt); //step through our sim 
-    // applyInputs(); //take from ui
     if (!config.PAUSED)
         step(dt); //do a calculation step 
     render(null);
@@ -1680,38 +1277,9 @@ function resizeCanvas () {
 }
 
 
-// function updateColors (dt) {//used to update the color map for each pointer, which happens slower than the entire sim updates 
-//     if (!config.COLORFUL) return;
-    
-//     colorUpdateTimer += dt * config.COLOR_UPDATE_SPEED;
-//     if (colorUpdateTimer >= 1) {
-//         colorUpdateTimer = wrap(colorUpdateTimer, 0, 1);
-//         pointers.forEach(p => {
-//             p.color = generateColor();
-//         });
-//     }
-// }
-
-// function applyInputs () {
-//     // if (splatStack.length > 0) //if there are splats then recreate them
-//     // multipleSplats(splatStack.pop());//TODO - verify what elemetns of splatStack are and what splatStack.pop() will return (should be int??)
-    
-    
-//     pointers.forEach(p => { //create a splat for our pointers 
-//         if (p.moved) {
-//             p.moved = false;
-//             // splatPointer(p);
-//         }
-//     });
-// }
-
-
 //the simulation, finally! 
 function step (dt) {
     gl.disable(gl.BLEND);
-
-    //first we generate some noise to create a velocity map we can use 
-    
     noiseProgram.bind();
     gl.uniform1f(noiseProgram.uniforms.uPeriod, config.PERIOD); 
     gl.uniform3f(noiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
@@ -1723,97 +1291,6 @@ function step (dt) {
     gl.uniform1f(noiseProgram.uniforms.uAspect, config.ASPECT); 
     blit(noise.write);
     noise.swap();
-
-    // curlProgram.bind();
-    // gl.uniform2f(curlProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    // gl.uniform1i(curlProgram.uniforms.uVelocity, velocity.read.attach(0));
-    // blit(curl);
-    
-    // vorticityProgram.bind();
-    // gl.uniform2f(vorticityProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    // gl.uniform1i(vorticityProgram.uniforms.uVelocity, velocity.read.attach(0));
-    // gl.uniform1i(vorticityProgram.uniforms.uCurl, curl.attach(1));
-    // gl.uniform1f(vorticityProgram.uniforms.curl, config.CURL);
-    // gl.uniform1f(vorticityProgram.uniforms.dt, dt);
-    // blit(velocity.write);
-    // velocity.swap();
-    
-    // divergenceProgram.bind();
-    // gl.uniform2f(divergenceProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    // gl.uniform1i(divergenceProgram.uniforms.uVelocity, velocity.read.attach(0));
-    // blit(divergence);
-    
-    // clearProgram.bind();
-    // gl.uniform1i(clearProgram.uniforms.uTexture, pressure.read.attach(0));
-    // gl.uniform1f(clearProgram.uniforms.value, config.PRESSURE);
-    // blit(pressure.write);
-    // pressure.swap();
-    
-    // pressureProgram.bind();
-    // gl.uniform2f(pressureProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    // gl.uniform1i(pressureProgram.uniforms.uDivergence, divergence.attach(0));
-    // for (let i = 0; i < config.PRESSURE_ITERATIONS; i++) {
-    //     gl.uniform1i(pressureProgram.uniforms.uPressure, pressure.read.attach(1));
-    //     blit(pressure.write);
-    //     pressure.swap();
-    // }
-    
-    // gradientSubtractProgram.bind();
-    // gl.uniform2f(gradientSubtractProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    // gl.uniform1i(gradientSubtractProgram.uniforms.uPressure, pressure.read.attach(0));
-    // gl.uniform1i(gradientSubtractProgram.uniforms.uVelocity, velocity.read.attach(1));
-    // blit(velocity.write);
-    // velocity.swap();
-
-    // if(config.FORCE_MAP_ENABLE){
-    //     splatVelProgram.bind();
-    //     gl.uniform1i(splatVelProgram.uniforms.uTarget, velocity.read.attach(0)); 
-    //     // gl.uniform1i(splatVelProgram.uniforms.uTarget, velocity.read.attach(0));
-    //     gl.uniform1i(splatVelProgram.uniforms.uDensityMap, picture.attach(1)); //density map
-    //     gl.uniform1i(splatVelProgram.uniforms.uForceMap, noise.attach(2)); //add noise for velocity map 
-    //     gl.uniform1f(splatVelProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-    //     gl.uniform1f(splatVelProgram.uniforms.uVelocityScale, config.VELOCITYSCALE);
-    //     gl.uniform2f(splatVelProgram.uniforms.point, 0, 0);
-    //     gl.uniform3f(splatVelProgram.uniforms.color, 0, 0, 1);
-    //     gl.uniform1i(splatVelProgram.uniforms.uClick, 0);
-    //     gl.uniform1f(splatVelProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-    //     blit(velocity.write);
-    //     velocity.swap();
-    // }
-
-    // if(config.DENSITY_MAP_ENABLE){
-    //     splatColorProgram.bind();
-    //     gl.uniform1f(splatColorProgram.uniforms.uFlow, config.FLOW);
-    //     gl.uniform1f(splatColorProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-    //     gl.uniform2f(splatColorProgram.uniforms.point, 0, 0);
-    //     gl.uniform1i(splatColorProgram.uniforms.uTarget, dye.read.attach(0));
-    //     gl.uniform1i(splatColorProgram.uniforms.uColor, picture.attach(1)); //color map
-    //     gl.uniform1i(splatColorProgram.uniforms.uDensityMap, picture.attach(2)); //density map
-    //     gl.uniform1i(splatVelProgram.uniforms.uClick, 0);
-    //     gl.uniform1f(splatColorProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-    //     blit(dye.write);
-    //     dye.swap();
-    // }
-    
-    // advectionProgram.bind();
-    // gl.uniform2f(advectionProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
-    // if (!ext.supportLinearFiltering)
-    // gl.uniform2f(advectionProgram.uniforms.dyeTexelSize, velocity.texelSizeX, velocity.texelSizeY);
-    // let velocityId = velocity.read.attach(0);
-    // gl.uniform1i(advectionProgram.uniforms.uVelocity, velocityId);
-    // gl.uniform1i(advectionProgram.uniforms.uSource, velocityId);
-    // gl.uniform1f(advectionProgram.uniforms.dt, dt);
-    // gl.uniform1f(advectionProgram.uniforms.dissipation, config.VELOCITY_DISSIPATION);
-    // blit(velocity.write);
-    // velocity.swap();
-    
-    // if (!ext.supportLinearFiltering)
-    //     gl.uniform2f(advectionProgram.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
-    //     gl.uniform1i(advectionProgram.uniforms.uVelocity, velocity.read.attach(0));
-    //     gl.uniform1i(advectionProgram.uniforms.uSource, dye.read.attach(1));
-    //     gl.uniform1f(advectionProgram.uniforms.dissipation, config.DENSITY_DISSIPATION);
-    //     blit(dye.write);
-    // dye.swap();
 }
 
 function render (target) {
@@ -1831,25 +1308,9 @@ function render (target) {
         else {
             gl.disable(gl.BLEND);
         }
-        
-        if (!config.TRANSPARENT) drawColor(target, normalizeColor(config.BACK_COLOR));
-        if (target == null && config.TRANSPARENT) drawCheckerboard(target);
         drawDisplay(noise);
-        // blit(picture);
-
 }
 
-function drawColor (target, color) {
-    colorProgram.bind();
-    gl.uniform4f(colorProgram.uniforms.color, color.r, color.g, color.b, 1);
-    blit(target);
-}
-
-function drawCheckerboard (target) {
-    checkerboardProgram.bind();
-    gl.uniform1f(checkerboardProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-    blit(target);
-}
 
 function drawDisplay (target) {
     let width = target == null ? gl.drawingBufferWidth : target.width;
@@ -1858,7 +1319,6 @@ function drawDisplay (target) {
     displayMaterial.bind();
     if (config.SHADING)
         gl.uniform2f(displayMaterial.uniforms.texelSize, 1.0 / width, 1.0 / height);
-    // gl.uniform1i(displayMaterial.uniforms.uTexture, picture.attach(0)); //this works to get the image in the background, but is not actually
     gl.uniform1i(displayMaterial.uniforms.uTexture, noise.read.attach(0));
     if (config.BLOOM) {
         gl.uniform1i(displayMaterial.uniforms.uBloom, bloom.attach(1));
@@ -1942,56 +1402,6 @@ function blur (target, temp, iterations) {
     }
 }
 
-// function splatPointer (pointer) {
-//     let dx = pointer.deltaX * config.SPLAT_FORCE;
-//     let dy = pointer.deltaY * config.SPLAT_FORCE;
-//     splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
-// }
-
-// function multipleSplats (amount) {
-//     for (let i = 0; i < amount; i++) {
-//         const color = generateColor();
-//         color.r *= 10.0;
-//         color.g *= 10.0;
-//         color.b *= 10.0;
-//         const x = Math.random();
-//         const y = Math.random();
-//         const dx = 1000 * (Math.random() - 0.5);
-//         const dy = 1000 * (Math.random() - 0.5);
-//         splat(x, y, dx, dy, color);
-//     }
-// }
-
-// function splat (x, y, dx, dy, color) {
-//     //when we click, we just want to add velocity to the sim locally 
-//     //so we use the delta in position between clicks and add that to the vel map
-//     splatProgram.bind();
-//     gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
-//     gl.uniform1f(splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-//     gl.uniform2f(splatProgram.uniforms.point, x, y);
-//     gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0.0);
-//     gl.uniform1f(splatProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-//     blit(velocity.write);
-//     velocity.swap();
-
-//     //pulling the color to add to the sim from a colormap 
-//     splatColorClickProgram.bind();
-//     gl.uniform1f(splatColorClickProgram.uniforms.uFlow, config.FLOW);
-//     gl.uniform1f(splatColorClickProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-//     gl.uniform2f(splatColorClickProgram.uniforms.point, x, y);
-//     // gl.uniform1i(splatColorClickProgram.uniforms.uTarget, dye.read.attach(0));
-//     // gl.uniform1i(splatColorClickProgram.uniforms.uColor, picture.attach(1));
-//     // gl.uniform1f(splatColorClickProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100.0));
-//     // blit(dye.write);
-//     // dye.swap();
-// }
-
-function correctRadius (radius) {
-    let aspectRatio = canvas.width / canvas.height;
-    if (aspectRatio > 1)
-        radius *= aspectRatio;
-    return radius;
-}
 
 canvas.addEventListener('mousedown', e => {
     let posX = scaleByPixelRatio(e.offsetX);
