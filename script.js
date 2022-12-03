@@ -9,9 +9,6 @@ const canvas = document.getElementsByTagName('canvas')[0];
 //function that will adjust canvas bounds in case screen size changes 
 resizeCanvas();
 
-
-
-
 //inital config for sim params 
 let config = {
     SIM_RESOLUTION: 256, //simres
@@ -750,6 +747,8 @@ void main()
 
 }
 `);
+
+// const noiseShader = compileShader(gl.FRAGMENT_SHADER, noiseFrag());
 
 //TODO - seems like this should be updated to a gaussian blur or something 
 const blurShader = compileShader(gl.FRAGMENT_SHADER, `
