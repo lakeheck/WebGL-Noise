@@ -1,42 +1,59 @@
 
 'use strict';
 
+import {gl , ext, canvas } from "./js/WebGL.js";
+import {config} from "./js/config.js";
+import {Noise} from "./js/Noise.js";
+import * as LGL from "./js/WebGL.js";
+
+
+LGL.resizeCanvas();
+
+let n = new Noise();
+n.initFramebuffers();
+n.simulate();
+
+
+// var noiseFrag = require('glsl/noiseShader.frag');
 
 // Simulation section
 
+
+
+
 //getElementsByTagName fxn will return a list of elements that meet your search criteria (familiar if used any browser traverse lib like selenium)
-const canvas = document.getElementsByTagName('canvas')[0];
+// const canvas = document.getElementsByTagName('canvas')[0];
 //function that will adjust canvas bounds in case screen size changes 
 resizeCanvas();
 
 //inital config for sim params 
-let config = {
-    SIM_RESOLUTION: 256, //simres
-    DYE_RESOLUTION: 1024, //output res 
-    ASPECT: 1.0,
-    EXPONENT: 1.0,
-    PERIOD: 3.0,
-    RIDGE: 1.0,
-    AMP: 1.0,
-    LACUNARITY: 1.0,
-    GAIN: 0.5,
-    OCTAVES: 4,
-    MONO: false,
-    BACK_COLOR: { r: 0, g: 0, b: 0 },
-    TRANSPARENT: false,
-    BLOOM: false,
-    BLOOM_ITERATIONS: 8,
-    BLOOM_RESOLUTION: 256,
-    BLOOM_INTENSITY: 0.8,
-    BLOOM_THRESHOLD: 0.6,
-    BLOOM_SOFT_KNEE: 0.7,
-    PAUSED: false,
-    SUNRAYS: true,
-    SUNRAYS_RESOLUTION: 196,
-    SHADING: true,
-    SUNRAYS_WEIGHT: 0.5,
-    NOISE_TRANSLATE_SPEED: 0.25
-}
+// let config = {
+//     SIM_RESOLUTION: 256, //simres
+//     DYE_RESOLUTION: 1024, //output res 
+//     ASPECT: 1.0,
+//     EXPONENT: 1.0,
+//     PERIOD: 3.0,
+//     RIDGE: 1.0,
+//     AMP: 1.0,
+//     LACUNARITY: 1.0,
+//     GAIN: 0.5,
+//     OCTAVES: 4,
+//     MONO: false,
+//     BACK_COLOR: { r: 0, g: 0, b: 0 },
+//     TRANSPARENT: false,
+//     BLOOM: false,
+//     BLOOM_ITERATIONS: 8,
+//     BLOOM_RESOLUTION: 256,
+//     BLOOM_INTENSITY: 0.8,
+//     BLOOM_THRESHOLD: 0.6,
+//     BLOOM_SOFT_KNEE: 0.7,
+//     PAUSED: false,
+//     SUNRAYS: true,
+//     SUNRAYS_RESOLUTION: 196,
+//     SHADING: true,
+//     SUNRAYS_WEIGHT: 0.5,
+//     NOISE_TRANSLATE_SPEED: 0.25
+// }
 
 
 //create a prototype data structure for our pointers (ie a click or touch)
@@ -63,7 +80,7 @@ let pointers = [];
 pointers.push(new pointerPrototype());
 
 //create webgl context 
-const { gl, ext } = getWebGLContext(canvas);
+// const { gl, ext } = getWebGLContext(canvas);
 
 //set output res on mobile 
 if (isMobile()) {
@@ -121,7 +138,6 @@ function getWebGLContext (canvas) {
     }
 
     //ga() is for sending data to Google Analytics 
-    ga('send', 'event', isWebGL2 ? 'webgl2' : 'webgl', formatRGBA == null ? 'not supported' : 'supported');
 
     return {
         gl,
@@ -206,7 +222,6 @@ function startGUI () {
     //create a function to assign to a button, here linking my github
     let github = gui.add({ fun : () => {
         window.open('https://github.com/lakeheck/Fluid-Simulation-WebGL');
-        ga('send', 'event', 'link button', 'github');
     } }, 'fun').name('Github');
     github.__li.className = 'cr function bigFont';
     github.__li.style.borderLeft = '3px solid #8C8C8C';
@@ -1235,12 +1250,12 @@ function updateKeywords () {
 
 
 //actually calling our functions to make program work 
-updateKeywords();
-initFramebuffers();
-let noiseSeed = 0.0; 
-let lastUpdateTime = Date.now();
-let colorUpdateTimer = 0.0;
-update();
+// updateKeywords();
+// initFramebuffers();
+// let noiseSeed = 0.0; 
+// let lastUpdateTime = Date.now();
+// let colorUpdateTimer = 0.0;
+// update();
 
 
 //simulation step 
