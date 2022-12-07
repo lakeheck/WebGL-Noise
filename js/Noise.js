@@ -24,7 +24,7 @@ export class Noise{
     bloomFinalProgram         = new LGL.Program(GLSL.baseVertexShader, GLSL.bloomFinalShader);
     sunraysMaskProgram        = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysMaskShader);
     sunraysProgram            = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysShader);
-    noiseProgram              = new LGL.Program(GLSL.baseVertexShader, GLSL.noiseShader); //noise generator 
+    noiseProgram              = new LGL.Program(GLSL.noiseVertexShader, GLSL.noiseShader); //noise generator 
 
 
     bloom;
@@ -48,7 +48,7 @@ export class Noise{
         //use helper function to create pairs of buffer objects that will be ping pong'd for our sim 
         //this lets us define the buffer objects that we wil want to use for feedback 
         if (this.dye == null || this.noise == null){
-            this.noise = LGL.createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
+            this.noise = LGL.createDoubleFBO(canvas.width, canvas.height, rgba.internalFormat, rgba.format, texType, filtering);
         }
         else {//resize if needed 
             this.noise = LGL.resizeDoubleFBO(this.noise, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
@@ -104,7 +104,7 @@ export class Noise{
     }
     
     simulate(){
-        this.updateKeywords();
+        this.updateKeywords(this);
         this.initFramebuffers();
         this.noiseSeed = 0.0; 
         this.lastUpdateTime = Date.now();
@@ -180,8 +180,6 @@ export class Noise{
         this.displayMaterial.bind();
         if (config.SHADING)
             gl.uniform2f(this.displayMaterial.uniforms.texelSize, 1.0 / width, 1.0 / height);
-        // gl.uniform1i(displayMaterial.uniforms.uTexture, picture.attach(0)); //this works to get the image in the background, but is not actually
-        // gl.uniform1i(displayMaterial.uniforms.uTexture, noise.read.attach(0));
 
         gl.uniform1i(this.displayMaterial.uniforms.uTexture, this.noise.read.attach(0));
 
@@ -336,33 +334,9 @@ export class Noise{
         const parName = 'Output Resolution';
         //dat is a library developed by Googles Data Team for building JS interfaces. Needs to be included in project directory 
         var gui = new dat.GUI({ width: 300 });
-    
-        gui.add(config, 'DISPLAY_FLUID').name('Render Fluid <> Vel Map');
-    
-        let fluidFolder = gui.addFolder('Fluid Settings');
-        fluidFolder.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(this.initFramebuffers);
-        fluidFolder.add(config, 'SIM_RESOLUTION', { '32': 32, '64': 64, '128': 128, '256': 256 }).name('Sim Resolution').onFinishChange(this.initFramebuffers);
-        fluidFolder.add(config, 'DENSITY_DISSIPATION', 0, 4.0).name('Density Diffusion');
-        fluidFolder.add(config, 'FLOW', 0, 0.5).name('Flow');
-        fluidFolder.add(config, 'SPLAT_FLOW', 0, 1).name('Splat Flow');
-        fluidFolder.add(config, 'VELOCITY_DISSIPATION', 0, 4.0).name('Velocity Diffusion');
-        fluidFolder.add(config, 'VELOCITYSCALE', 0, 10.0).name('Velocity Scale');
-        fluidFolder.add(config, 'PRESSURE', 0.0, 1.0).name('Pressure');
-        fluidFolder.add(config, 'CURL', 0, 50).name('Vorticity').step(1);
-        fluidFolder.add(config, 'SPLAT_RADIUS', 0.01, 1.0).name('Splat Radius');
-        fluidFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords);
-        fluidFolder.add(config, 'PAUSED').name('Paused').listen();
-        fluidFolder.add({ fun: () => {
-            splatStack.push(parseInt(Math.random() * 20) + 5);
-        } }, 'fun').name('Random splats');
         
-        
-        let mapFolder = gui.addFolder('Maps');
-        mapFolder.add(config, 'FORCE_MAP_ENABLE').name('force map enable');
-        mapFolder.add(config, 'DENSITY_MAP_ENABLE').name('density map enable'); //adding listen() will update the ui if the parameter value changes elsewhere in the program 
-        // mapFolder.add(config, 'COLOR_MAP_ENABLE').name('color map enable');
-    
-        let noiseFolder = gui.addFolder('Velocity Map');
+        let noiseFolder = gui.addFolder('Noise');
+        noiseFolder.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(this.initFramebuffers(this));
         noiseFolder.add(config, 'PERIOD', 0, 10.0).name('Period');
         noiseFolder.add(config, 'EXPONENT', 0, 4.0).name('Exponent');
         noiseFolder.add(config, 'RIDGE', 0, 1.5).name('Ridge');
@@ -372,19 +346,15 @@ export class Noise{
         noiseFolder.add(config, 'GAIN', 0.0, 1.0).name('Gain');
         noiseFolder.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
         noiseFolder.add(config, 'MONO').name('Mono');
-    
-        // let bloomFolder = gui.addFolder('Bloom');
-        // bloomFolder.add(config, 'BLOOM').name('enabled').onFinishChange(updateKeywords);
-        // bloomFolder.add(config, 'BLOOM_INTENSITY', 0.1, 2.0).name('intensity');
-        // bloomFolder.add(config, 'BLOOM_THRESHOLD', 0.0, 1.0).name('threshold');
+        noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
     
         let sunraysFolder = gui.addFolder('Sunrays');
-        sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords);
+        sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));
         sunraysFolder.add(config, 'SUNRAYS_WEIGHT', 0.01, 1.0).name('weight');
     
         //create a function to assign to a button, here linking my github
         let github = gui.add({ fun : () => {
-            window.open('https://github.com/lakeheck/Fluid-Simulation-WebGL');
+            window.open('https://github.com/lakeheck/');
             ga('send', 'event', 'link button', 'github');
         } }, 'fun').name('Github');
         github.__li.className = 'cr function bigFont';
@@ -399,21 +369,6 @@ export class Noise{
 }
 
 
-
-function pointerPrototype () {
-    this.id = -1;
-    this.texcoordX = 0;
-    this.texcoordY = 0;
-    this.prevTexcoordX = 0;
-    this.prevTexcoordY = 0;
-    this.deltaX = 0;
-    this.deltaY = 0;
-    this.down = false;
-    this.moved = false;
-    this.color = [30, 0, 300];
-}
-
-    
 function drawColor (target, color, colorProgram) {
     colorProgram.bind();
     gl.uniform4f(colorProgram.uniforms.color, color.r, color.g, color.b, 1);

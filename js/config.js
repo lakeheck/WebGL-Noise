@@ -27,7 +27,7 @@ export const config = {
     BLOOM_SOFT_KNEE: 0.7,
     SUNRAYS: true,
     SUNRAYS_RESOLUTION: 196,
-    SUNRAYS_WEIGHT: 0.4,
+    SUNRAYS_WEIGHT: 0.6,
     FORCE_MAP_ENABLE: true,
     DENSITY_MAP_ENABLE: true, 
     COLOR_MAP_ENABLE:true,
