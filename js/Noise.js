@@ -6,19 +6,12 @@ import {config} from "./config.js";
 export class Noise{
 
     constructor(gl){
-        this.gl = gl;
-        this.pointers = [];
-        this.splatstack = [];
-        this.pointers.push(new pointerPrototype());
         this.displayMaterial = new LGL.Material(GLSL.baseVertexShader, GLSL.displayShaderSource);
         this.canvas = canvas;
         this.lastUpdateTime = 0.0;
         this.noiseSeed = 0.0;
         this.colorUpdateTimer = 0.0;
     }
-
-    splatStack = [];
-
 
     //create all our shader programs 
     blurProgram               = new LGL.Program(GLSL.blurVertexShader, GLSL.blurShader);
@@ -31,44 +24,17 @@ export class Noise{
     bloomFinalProgram         = new LGL.Program(GLSL.baseVertexShader, GLSL.bloomFinalShader);
     sunraysMaskProgram        = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysMaskShader);
     sunraysProgram            = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysShader);
-    splatProgram              = new LGL.Program(GLSL.baseVertexShader, GLSL.splatShader);
-    splatColorClickProgram    = new LGL.Program(GLSL.baseVertexShader, GLSL.splatColorClickShader);
-    splatVelProgram           = new LGL.Program(GLSL.baseVertexShader, GLSL.splatVelShader); //added to support color / vel map
-    splatColorProgram         = new LGL.Program(GLSL.baseVertexShader, GLSL.splatColorShader); //added to support color / vel map
-    advectionProgram          = new LGL.Program(GLSL.baseVertexShader, GLSL.advectionShader);
-    divergenceProgram         = new LGL.Program(GLSL.baseVertexShader, GLSL.divergenceShader);
-    curlProgram               = new LGL.Program(GLSL.baseVertexShader, GLSL.curlShader);
-    vorticityProgram          = new LGL.Program(GLSL.baseVertexShader, GLSL.vorticityShader);
-    pressureProgram           = new LGL.Program(GLSL.baseVertexShader, GLSL.pressureShader);
-    gradientSubtractProgram   = new LGL.Program(GLSL.baseVertexShader, GLSL.gradientSubtractShader);
     noiseProgram              = new LGL.Program(GLSL.baseVertexShader, GLSL.noiseShader); //noise generator 
 
 
-    dye;
-    velocity;
-    divergence;
-    curl;
-    pressure;
     bloom;
-    // errata;
     bloomFramebuffers = [];
     sunrays;
     sunraysTemp;
     noise;
-
-    // noiseSeed = 0.0; 
-    // lastUpdateTime;
-    // colorUpdateTimer = 0.0;
-
-
-    picture = LGL.createTextureAsync('img/flowers_fence.JPG');
-    // picture = this.errata;
-    ditheringTexture = LGL.createTextureAsync('img/LDR_LLL1_0.png');
     
-    // displayMaterial = new LGL.Material(GLSL.baseVertexShader, GLSL.displayShaderSource);
 
     initFramebuffers () {
-        let simRes = LGL.getResolution(config.SIM_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
         let dyeRes = LGL.getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
     
         const texType = ext.halfFloatTexType; //TODO - should be 32 bit floats? 
@@ -82,28 +48,12 @@ export class Noise{
         //use helper function to create pairs of buffer objects that will be ping pong'd for our sim 
         //this lets us define the buffer objects that we wil want to use for feedback 
         if (this.dye == null || this.noise == null){
-            this.dye = LGL.createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
             this.noise = LGL.createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
-            // this.errata = LGL.createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
-
         }
         else {//resize if needed 
-            this.dye = LGL.resizeDoubleFBO(this.dye, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
             this.noise = LGL.resizeDoubleFBO(this.noise, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
-            // this.errata = LGL.resizeDoubleFBO(this.errata, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
 
         }
-        if (this.velocity == null)
-            this.velocity = LGL.createDoubleFBO(simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
-        else //resize if needed 
-            this.velocity = LGL.resizeDoubleFBO(this.velocity, simRes.width, simRes.height, rg.internalFormat, rg.format, texType, filtering);
-        //other buffer objects that dont need feedback / ping-pong 
-        //notice the filtering type is set to gl.NEAREST meaning we grab just a single px, no filtering 
-        this.divergence = LGL.createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-        this.curl       = LGL.createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-        this.pressure   = LGL.createDoubleFBO(simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-        // noise       = createFBO      (simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST);
-        //setup buffers for post process 
         this.initBloomFramebuffers();
         this.initSunraysFramebuffers();
     }
@@ -156,7 +106,6 @@ export class Noise{
     simulate(){
         this.updateKeywords();
         this.initFramebuffers();
-        this.multipleSplats(parseInt(Math.random() * 20) + 5);
         this.noiseSeed = 0.0; 
         this.lastUpdateTime = Date.now();
         this.colorUpdateTimer = 0.0;
@@ -318,57 +267,6 @@ export class Noise{
         }
     }
 
-    splatPointer (pointer) {
-        let dx = pointer.deltaX * config.SPLAT_FORCE;
-        let dy = pointer.deltaY * config.SPLAT_FORCE;
-        this.splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
-    }
-
-    multipleSplats (amount) {
-        for (let i = 0; i < amount; i++) {
-            const color = LGL.generateColor();
-            color.r *= 10.0;
-            color.g *= 10.0;
-            color.b *= 10.0;
-            const x = Math.random();
-            const y = Math.random();
-            const dx = 1000 * (Math.random() - 0.5);
-            const dy = 1000 * (Math.random() - 0.5);
-            this.splat(x, y, dx, dy, color);
-        }
-    }
-
-    splat (x, y, dx, dy, color) {
-        //when we click, we just want to add velocity to the sim locally 
-        //so we use the delta in position between clicks and add that to the vel map
-        this.splatProgram.bind();
-        gl.uniform1i(this.splatProgram.uniforms.uTarget, this.velocity.read.attach(0));
-        gl.uniform1f(this.splatProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-        gl.uniform2f(this.splatProgram.uniforms.point, x, y);
-        gl.uniform3f(this.splatProgram.uniforms.color, dx, dy, 0.0);
-        gl.uniform1f(this.splatProgram.uniforms.radius, this.correctRadius(config.SPLAT_RADIUS / 100.0));
-        LGL.blit(this.velocity.write);
-        this.velocity.swap();
-    
-        //pulling the color to add to the sim from a colormap 
-        this.splatColorClickProgram.bind();
-        gl.uniform1f(this.splatColorClickProgram.uniforms.uFlow, config.SPLAT_FLOW);
-        gl.uniform1f(this.splatColorClickProgram.uniforms.aspectRatio, canvas.width / canvas.height);
-        gl.uniform2f(this.splatColorClickProgram.uniforms.point, x, y);
-        gl.uniform1i(this.splatColorClickProgram.uniforms.uTarget, this.dye.read.attach(0));
-        gl.uniform1i(this.splatColorClickProgram.uniforms.uColor, this.picture.attach(1));
-        gl.uniform1f(this.splatColorClickProgram.uniforms.radius, this.correctRadius(config.SPLAT_RADIUS / 100.0));
-        LGL.blit(this.dye.write);
-        this.dye.swap();
-    }
-
-    correctRadius (radius) {
-        let aspectRatio = canvas.width / canvas.height;
-        if (aspectRatio > 1)
-            radius *= aspectRatio;
-        return radius;
-    }
-
     setupListener(){
 
         this.canvas.addEventListener('mousedown', e => {
@@ -528,42 +426,3 @@ function drawCheckerboard (target, checkerboardProgram) {
     LGL.blit(target);
 }
 
-function correctDeltaX (delta, canvas) {
-    let aspectRatio = canvas.width / canvas.height;
-    if (aspectRatio < 1) delta *= aspectRatio;
-    return delta;
-}
-
-function correctDeltaY (delta, canvas) {
-    let aspectRatio = canvas.width / canvas.height;
-    if (aspectRatio > 1) delta /= aspectRatio;
-    return delta;
-}
-
-
-function updatePointerDownData (pointer, id, posX, posY, canvas) {
-    pointer.id = id;
-    pointer.down = true;
-    pointer.moved = false;
-    pointer.texcoordX = posX / canvas.width;
-    pointer.texcoordY = 1.0 - posY / canvas.height;
-    pointer.prevTexcoordX = pointer.texcoordX;
-    pointer.prevTexcoordY = pointer.texcoordY;
-    pointer.deltaX = 0;
-    pointer.deltaY = 0;
-    pointer.color = LGL.generateColor();
-}
-
-function updatePointerMoveData (pointer, posX, posY, canvas) {
-    pointer.prevTexcoordX = pointer.texcoordX;
-    pointer.prevTexcoordY = pointer.texcoordY;
-    pointer.texcoordX = posX / canvas.width;
-    pointer.texcoordY = 1.0 - posY / canvas.height;
-    pointer.deltaX = correctDeltaX(pointer.texcoordX - pointer.prevTexcoordX, canvas);
-    pointer.deltaY = correctDeltaY(pointer.texcoordY - pointer.prevTexcoordY, canvas);
-    pointer.moved = Math.abs(pointer.deltaX) > 0 || Math.abs(pointer.deltaY) > 0;
-}
-
-function updatePointerUpData (pointer) {
-    pointer.down = false;
-}
