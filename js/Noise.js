@@ -167,15 +167,12 @@ export class Noise{
         //time step 
         let now = Date.now();
         let then = this.lastUpdateTime;
-        // let dt = 0.016666;
         let dt = (now - then) / 1000;
         dt = Math.min(dt, 0.016666); //never want to update slower than 60fps
         this.lastUpdateTime = now;
         this.noiseSeed += dt * config.NOISE_TRANSLATE_SPEED;
         if (LGL.resizeCanvas()) //resize if needed 
             this.initFramebuffers();
-        this.updateColors(dt); //step through our sim 
-        this.applyInputs(); //take from ui
         if (!config.PAUSED)
             this.step(dt); //do a calculation step 
         this.render(null);
@@ -189,33 +186,6 @@ export class Noise{
         this.lastUpdateTime = now;
         return dt;
     }
-
-    updateColors (dt) {//used to update the color map for each pointer, which happens slower than the entire sim updates 
-        if (!config.COLORFUL) return;
-        
-        this.colorUpdateTimer += dt * config.COLOR_UPDATE_SPEED;
-        if (this.colorUpdateTimer >= 1) {
-            this.colorUpdateTimer = LGL.wrap(this.colorUpdateTimer, 0, 1);
-            this.pointers.forEach(p => {
-                p.color = LGL.generateColor();
-            });
-        }
-    }
-
-    applyInputs () {
-        // console.log(this.splatStack);
-        if (this.splatStack.length > 0) //if there are splats then recreate them
-        this.multipleSplats(this.splatStack.pop());//TODO - verify what elemetns of splatStack are and what splatStack.pop() will return (should be int??)
-        
-        
-        this.pointers.forEach(p => { //create a splat for our pointers 
-            if (p.moved) {
-                p.moved = false;
-                this.splatPointer(p);
-            }
-        });
-    }
-
 
     step (dt) {
         gl.disable(gl.BLEND);
