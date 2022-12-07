@@ -25,6 +25,8 @@ export class Noise{
     sunraysMaskProgram        = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysMaskShader);
     sunraysProgram            = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysShader);
     noiseProgram              = new LGL.Program(GLSL.noiseVertexShader, GLSL.noiseShader); //noise generator 
+    errataNoiseProgram        = new LGL.Program(GLSL.noiseVertexShader, GLSL.errataNoiseShader); //noise generator    
+
 
 
     bloom;
@@ -139,20 +141,38 @@ export class Noise{
     step (dt) {
         gl.disable(gl.BLEND);
 
-        this.noiseProgram.bind();
-        gl.uniform1f(this.noiseProgram.uniforms.uPeriod, config.PERIOD); 
-        gl.uniform3f(this.noiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
-        gl.uniform1f(this.noiseProgram.uniforms.uAmplitude, config.AMP); 
-        gl.uniform1f(this.noiseProgram.uniforms.uSeed, this.noiseSeed); 
-        gl.uniform1f(this.noiseProgram.uniforms.uExponent, config.EXPONENT); 
-        gl.uniform1f(this.noiseProgram.uniforms.uRidgeThreshold, config.RIDGE); 
-        gl.uniform1f(this.noiseProgram.uniforms.uLacunarity, config.LACUNARITY); 
-        gl.uniform1f(this.noiseProgram.uniforms.uGain, config.GAIN); 
-        gl.uniform1f(this.noiseProgram.uniforms.uOctaves, config.OCTAVES); 
-        gl.uniform3f(this.noiseProgram.uniforms.uScale, 1., 1., 1.); 
-        gl.uniform1f(this.noiseProgram.uniforms.uAspect, config.ASPECT); 
-        LGL.blit(this.noise.write);
-        this.noise.swap();
+        if(config.ERRATA){
+            this.errataNoiseProgram.bind();
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uPeriod, config.PERIOD); 
+            gl.uniform3f(this.errataNoiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uAmplitude, config.AMP); 
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uSeed, this.noiseSeed); 
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uExponent, config.EXPONENT); 
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uRidgeThreshold, config.RIDGE); 
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uLacunarity, config.LACUNARITY); 
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uGain, config.GAIN); 
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uOctaves, config.OCTAVES); 
+            gl.uniform3f(this.errataNoiseProgram.uniforms.uScale, 1., 1., 1.); 
+            gl.uniform1f(this.errataNoiseProgram.uniforms.uAspect, config.ASPECT); 
+            LGL.blit(this.noise.write);
+            this.noise.swap(); 
+        }
+        else{
+            this.noiseProgram.bind();
+            gl.uniform1f(this.noiseProgram.uniforms.uPeriod, config.PERIOD); 
+            gl.uniform3f(this.noiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
+            gl.uniform1f(this.noiseProgram.uniforms.uAmplitude, config.AMP); 
+            gl.uniform1f(this.noiseProgram.uniforms.uSeed, this.noiseSeed); 
+            gl.uniform1f(this.noiseProgram.uniforms.uExponent, config.EXPONENT); 
+            gl.uniform1f(this.noiseProgram.uniforms.uRidgeThreshold, config.RIDGE); 
+            gl.uniform1f(this.noiseProgram.uniforms.uLacunarity, config.LACUNARITY); 
+            gl.uniform1f(this.noiseProgram.uniforms.uGain, config.GAIN); 
+            gl.uniform1f(this.noiseProgram.uniforms.uOctaves, config.OCTAVES); 
+            gl.uniform3f(this.noiseProgram.uniforms.uScale, 1., 1., 1.); 
+            gl.uniform1f(this.noiseProgram.uniforms.uAspect, config.ASPECT); 
+            LGL.blit(this.noise.write);
+            this.noise.swap();
+        }
     }
 
     render (target) {
@@ -345,11 +365,13 @@ export class Noise{
         noiseFolder.add(config, 'NOISE_TRANSLATE_SPEED', 0, 2).name('Noise Translate Speed');
         noiseFolder.add(config, 'GAIN', 0.0, 1.0).name('Gain');
         noiseFolder.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
-        noiseFolder.add(config, 'MONO').name('Mono');
-        noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
-    
-        let sunraysFolder = gui.addFolder('Sunrays');
-        sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));
+        // noiseFolder.add(config, 'MONO').name('Mono');
+        // noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
+        noiseFolder.add(config, 'ERRATA').name('Errata').onFinishChange(this.updateKeywords(this));
+
+
+        let sunraysFolder = gui.addFolder('Highlights');
+        // sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));
         sunraysFolder.add(config, 'SUNRAYS_WEIGHT', 0.01, 1.0).name('weight');
     
         //create a function to assign to a button, here linking my github

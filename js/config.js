@@ -41,4 +41,5 @@ export const config = {
     MONO: false,
     NOISE_TRANSLATE_SPEED: 0.15,
     DISPLAY_FLUID: false,
+    ERRATA: true
 };
