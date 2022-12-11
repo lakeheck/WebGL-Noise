@@ -2,6 +2,8 @@
 import * as GLSL from "./Shaders.js";
 import * as LGL from "./WebGL.js";
 import {gl , ext, canvas } from "./WebGL.js";
+
+import {Stats} from "../../stats.module.js";
 import {config} from "./config.js";
 export class Noise{
 
@@ -11,6 +13,7 @@ export class Noise{
         this.lastUpdateTime = 0.0;
         this.noiseSeed = 0.0;
         this.colorUpdateTimer = 0.0;
+        this.initStats();
     }
 
     //create all our shader programs 
@@ -27,13 +30,20 @@ export class Noise{
     noiseProgram              = new LGL.Program(GLSL.noiseVertexShader, GLSL.noiseShader); //noise generator 
     errataNoiseProgram        = new LGL.Program(GLSL.noiseVertexShader, GLSL.errataNoiseShader); //noise generator    
 
-
+    stats = new Stats();
 
     bloom;
     bloomFramebuffers = [];
     sunrays;
     sunraysTemp;
     noise;
+
+    initStats(){
+        this.stats = new Stats();
+        let container = document.createElement('div')
+        document.body.appendChild(container );
+        container.appendChild(this.stats.dom);
+    }
     
 
     initFramebuffers () {
@@ -113,7 +123,7 @@ export class Noise{
         this.colorUpdateTimer = 0.0;
         this.update();
     }
-
+    
     update () {
         //time step 
         let now = Date.now();
@@ -123,10 +133,11 @@ export class Noise{
         this.lastUpdateTime = now;
         this.noiseSeed += dt * config.NOISE_TRANSLATE_SPEED;
         if (LGL.resizeCanvas()) //resize if needed 
-            this.initFramebuffers();
+        this.initFramebuffers();
         if (!config.PAUSED)
-            this.step(dt); //do a calculation step 
+        this.step(dt); //do a calculation step 
         this.render(null);
+        this.stats.update();
         requestAnimationFrame(() => this.update(this));
     }
     
@@ -368,7 +379,6 @@ export class Noise{
         // noiseFolder.add(config, 'MONO').name('Mono');
         // noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
         noiseFolder.add(config, 'ERRATA').name('Errata').onFinishChange(this.updateKeywords(this));
-
 
         let sunraysFolder = gui.addFolder('Highlights');
         // sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));
