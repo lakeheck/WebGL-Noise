@@ -48,7 +48,7 @@ export class Noise{
 
     initFramebuffers () {
         let dyeRes = LGL.getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
-    
+        console.log(dyeRes);
         const texType = ext.halfFloatTexType; //TODO - should be 32 bit floats? 
         const rgba    = ext.formatRGBA;
         const rg      = ext.formatRG;
@@ -60,7 +60,7 @@ export class Noise{
         //use helper function to create pairs of buffer objects that will be ping pong'd for our sim 
         //this lets us define the buffer objects that we wil want to use for feedback 
         if (this.dye == null || this.noise == null){
-            this.noise = LGL.createDoubleFBO(canvas.width, canvas.height, rgba.internalFormat, rgba.format, texType, filtering);
+            this.noise = LGL.createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
         }
         else {//resize if needed 
             this.noise = LGL.resizeDoubleFBO(this.noise, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
