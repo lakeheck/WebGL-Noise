@@ -45,10 +45,15 @@ export class Noise{
         container.appendChild(this.stats.dom);
     }
     
+    initStats(){
+        this.stats = new LGL.Stats();
+        let container = document.createElement('div')
+        document.body.appendChild(container );
+        container.appendChild(this.stats.dom);
+    }
 
     initFramebuffers () {
         let dyeRes = LGL.getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
-        console.log(dyeRes);
         const texType = ext.halfFloatTexType; //TODO - should be 32 bit floats? 
         const rgba    = ext.formatRGBA;
         const rg      = ext.formatRG;
@@ -68,6 +73,7 @@ export class Noise{
         }
         this.initBloomFramebuffers();
         this.initSunraysFramebuffers();
+        console.log(this.noise.width, this.noise.height);
     }
 
     initBloomFramebuffers () {
@@ -132,8 +138,9 @@ export class Noise{
         dt = Math.min(dt, 0.016666); //never want to update slower than 60fps
         this.lastUpdateTime = now;
         this.noiseSeed += dt * config.NOISE_TRANSLATE_SPEED;
-        if (LGL.resizeCanvas()) //resize if needed 
-        this.initFramebuffers();
+        if (LGL.resizeCanvas() || config.DYE_RESOLUTION != this.noise.height){//resize if needed - NOTE, we need to check for the resolution change => resize since i cant figure out how to call this fxn when the GUI udpates, due to namespace issues (i think)
+            this.initFramebuffers();
+        }
         if (!config.PAUSED)
         this.step(dt); //do a calculation step 
         this.render(null);
@@ -222,7 +229,7 @@ export class Noise{
         }
         if (config.SUNRAYS)
             gl.uniform1i(this.displayMaterial.uniforms.uSunrays, this.sunrays.attach(3));
-        LGL.blit(target);
+        LGL.blit();
     }
 
     applyBloom (source, destination) {
@@ -367,7 +374,7 @@ export class Noise{
         var gui = new dat.GUI({ width: 300 });
         
         let noiseFolder = gui.addFolder('Noise');
-        noiseFolder.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(this.initFramebuffers(this));
+        noiseFolder.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
         noiseFolder.add(config, 'PERIOD', 0, 10.0).name('Period');
         noiseFolder.add(config, 'EXPONENT', 0, 4.0).name('Exponent');
         noiseFolder.add(config, 'RIDGE', 0, 1.5).name('Ridge');
@@ -413,3 +420,6 @@ function drawCheckerboard (target, checkerboardProgram) {
     LGL.blit(target);
 }
 
+function updateGUI(noiseObj){
+    noiseObj.initFramebuffers();
+}
