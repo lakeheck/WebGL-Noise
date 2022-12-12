@@ -11,6 +11,7 @@ export class Noise{
         this.lastUpdateTime = 0.0;
         this.noiseSeed = 0.0;
         this.colorUpdateTimer = 0.0;
+        this.initStats();
     }
 
     //create all our shader programs 
@@ -35,6 +36,12 @@ export class Noise{
     sunraysTemp;
     noise;
     
+    initStats(){
+        this.stats = new LGL.Stats();
+        let container = document.createElement('div')
+        document.body.appendChild(container );
+        container.appendChild(this.stats.dom);
+    }
 
     initFramebuffers () {
         let dyeRes = LGL.getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
@@ -132,6 +139,7 @@ export class Noise{
         if (!config.PAUSED)
             this.step(dt); //do a calculation step 
         this.render(null);
+        this.stats.update();
         requestAnimationFrame(() => this.update(this));
     }
     
