@@ -38,7 +38,10 @@ export class Noise{
 
     initFramebuffers () {
         let dyeRes = LGL.getResolution(config.DYE_RESOLUTION);//getResolution basically just applies view aspect ratio to the passed resolution 
-    
+        
+        // dyeRes.width = gl.drawingBufferWidth;
+        // dyeRes.height = gl.drawingBufferHeight;
+
         const texType = ext.halfFloatTexType; //TODO - should be 32 bit floats? 
         const rgba    = ext.formatRGBA;
         const rg      = ext.formatRG;
@@ -50,7 +53,7 @@ export class Noise{
         //use helper function to create pairs of buffer objects that will be ping pong'd for our sim 
         //this lets us define the buffer objects that we wil want to use for feedback 
         if (this.dye == null || this.noise == null){
-            this.noise = LGL.createDoubleFBO(canvas.width, canvas.height, rgba.internalFormat, rgba.format, texType, filtering);
+            this.noise = LGL.createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
         }
         else {//resize if needed 
             this.noise = LGL.resizeDoubleFBO(this.noise, dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
@@ -58,6 +61,7 @@ export class Noise{
         }
         this.initBloomFramebuffers();
         this.initSunraysFramebuffers();
+        console.log(this.noise.width, this.noise.height);
     }
 
     initBloomFramebuffers () {
@@ -122,8 +126,9 @@ export class Noise{
         dt = Math.min(dt, 0.016666); //never want to update slower than 60fps
         this.lastUpdateTime = now;
         this.noiseSeed += dt * config.NOISE_TRANSLATE_SPEED;
-        if (LGL.resizeCanvas()) //resize if needed 
+        if (LGL.resizeCanvas()){//resize if needed 
             this.initFramebuffers();
+        }
         if (!config.PAUSED)
             this.step(dt); //do a calculation step 
         this.render(null);
@@ -211,7 +216,7 @@ export class Noise{
         }
         if (config.SUNRAYS)
             gl.uniform1i(this.displayMaterial.uniforms.uSunrays, this.sunrays.attach(3));
-        LGL.blit(target);
+        LGL.blit();
     }
 
     applyBloom (source, destination) {
