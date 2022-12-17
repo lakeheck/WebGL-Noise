@@ -416,48 +416,47 @@ export class Noise{
         //dat is a library developed by Googles Data Team for building JS interfaces. Needs to be included in project directory 
         var gui = new dat.GUI({ width: 300 });
         
+        gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
+        gui.add(config, 'NOISE_TRANSLATE_SPEED', 0, .5).name('Speed');
+        gui.add(config, 'RESET').name('Reset').onFinishChange(reset);
+        gui.add(config, 'RANDOM').name('Randomize').onFinishChange(randomizeParams);
+        
         let noiseFolder = gui.addFolder('Noise');
-        noiseFolder.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
         noiseFolder.add(config, 'PERIOD', 0.05, 1.0).name('Period');
         noiseFolder.add(config, 'EXPONENT', 0.1, 2.0).name('Exponent');
         noiseFolder.add(config, 'RIDGE', 0.6, 2.5).name('Ridge');
         noiseFolder.add(config, 'AMP', 0.1, 1.5).name('Amplitude');
         noiseFolder.add(config, 'LACUNARITY', 0, 3).name('Lacunarity');
-        noiseFolder.add(config, 'NOISE_TRANSLATE_SPEED', 0, 2).name('Noise Translate Speed');
         noiseFolder.add(config, 'GAIN', 0.0, 1.0).name('Gain');
         noiseFolder.add(config, 'NOISECROSS', 0.0, 1.0).name('Base Warp');
         noiseFolder.add(config, 'MAXDIST', 0.0, 1.0).name('Warp Distance');
         noiseFolder.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
-        noiseFolder.add(config, 'SCALEX', 0.01, 2).name('Scale X');
-        noiseFolder.add(config, 'SCALEY', 0.01, 2).name('Scale Y');
-        // noiseFolder.add(config, 'MONO').name('Mono');
-        // noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
-        // noiseFolder.add(config, 'ERRATA').name('Errata').onFinishChange(this.updateKeywords(this));
+        noiseFolder.add(config, 'SCALEX', 0.1, 2).name('Scale X');
+        noiseFolder.add(config, 'SCALEY', 0.1, 2).name('Scale Y');
         
         
-        let paletteFolder = gui.addFolder('Palette');
-        paletteFolder.addColor(config, 'COLOR1').name('Color1');
-        paletteFolder.addColor(config, 'COLOR2').name('Color2');
-        paletteFolder.addColor(config, 'COLOR3').name('Color3');
-        paletteFolder.addColor(config, 'COLOR4').name('Color4');
-        paletteFolder.addColor(config, 'COLOR5').name('Color5');
+        // let paletteFolder = gui.addFolder('Palette');
+        // paletteFolder.addColor(config, 'COLOR1').name('Color1');
+        // paletteFolder.addColor(config, 'COLOR2').name('Color2');
+        // paletteFolder.addColor(config, 'COLOR3').name('Color3');
+        // paletteFolder.addColor(config, 'COLOR4').name('Color4');
+        // paletteFolder.addColor(config, 'COLOR5').name('Color5');
 
-        gui.add(config, 'RESET').name('Reset').onFinishChange(reset);
-
-        let sunraysFolder = gui.addFolder('Highlights');
-        // sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));
-        sunraysFolder.add(config, 'SUNRAYS_WEIGHT', 0.01, 1.0).name('weight');
+        
     
         //create a function to assign to a button, here linking my github
         let github = gui.add({ fun : () => {
             window.open('https://github.com/lakeheck/');
-            ga('send', 'event', 'link button', 'github');
         } }, 'fun').name('Github');
         github.__li.className = 'cr function bigFont';
         github.__li.style.borderLeft = '3px solid #8C8C8C';
-        let githubIcon = document.createElement('span');
-        github.domElement.parentElement.appendChild(githubIcon);
-        githubIcon.className = 'icon github';
+
+        let portfolio = gui.add({ fun : () => {
+            window.open('https://www.lakeheckaman.com');
+        } }, 'fun').name('Portfolio');
+        portfolio.__li.className = 'cr function bigFont';
+        portfolio.__li.style.borderLeft = '3px solid #1C5C1C';
+
     
         if (LGL.isMobile())
             gui.close();
@@ -465,6 +464,11 @@ export class Noise{
 
         function reset(){
             noiseFolder.__controllers.forEach(c => c.setValue(c.initialValue));
+        }
+
+
+        function randomizeParams(){
+            noiseFolder.__controllers.forEach(c => c.setValue(Math.random()*(c.__max - c.__min) + c.__min));
         }
 
     }

@@ -4,15 +4,17 @@ export const config = {
     ASPECT: 1.0,
     CAPTURE_RESOLUTION: 1024, //screen capture res 
     DENSITY_DISSIPATION: .85, //def need to figure out this one, think perhaps bc im squaring the color in splatColor
-    SHADING: true,
+    SHADING: false,
     PAUSED: false,
+    //not used 
     BLOOM: false,
     BLOOM_ITERATIONS: 8,
     BLOOM_RESOLUTION: 256,
     BLOOM_INTENSITY: 0.8,
     BLOOM_THRESHOLD: 0.6,
     BLOOM_SOFT_KNEE: 0.7,
-    SUNRAYS: true,
+    //not used 
+    SUNRAYS: false,
     SUNRAYS_RESOLUTION: 196,
     SUNRAYS_WEIGHT: 0.6,
     //noise settings 
@@ -39,6 +41,7 @@ export const config = {
     MAXDIST: 1.,
     SCALEX: 1.,
     SCALEY: 1.,
-    RESET: false
+    RESET: false,
+    RANDOM: false
     
 };
