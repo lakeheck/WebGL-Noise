@@ -416,12 +416,12 @@ export class Noise{
         //dat is a library developed by Googles Data Team for building JS interfaces. Needs to be included in project directory 
         var gui = new dat.GUI({ width: 300 });
         
-        gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
+        gui.add(config, 'DYE_RESOLUTION', {'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
         gui.add(config, 'NOISE_TRANSLATE_SPEED', 0, .5).name('Speed');
         gui.add(config, 'RESET').name('Reset').onFinishChange(reset);
         gui.add(config, 'RANDOM').name('Randomize').onFinishChange(randomizeParams);
         
-        let noiseFolder = gui.addFolder('Noise');
+        let noiseFolder = gui.addFolder('Noise Settings');
         noiseFolder.add(config, 'PERIOD', 0.05, 1.0).name('Period');
         noiseFolder.add(config, 'EXPONENT', 0.1, 2.0).name('Exponent');
         noiseFolder.add(config, 'RIDGE', 0.6, 2.5).name('Ridge');
