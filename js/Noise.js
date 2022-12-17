@@ -168,6 +168,11 @@ export class Noise{
             gl.uniform3f(this.warpNoiseProgram.uniforms.uScale, 1., 1., 1.); 
             gl.uniform1f(this.warpNoiseProgram.uniforms.uAspect, config.ASPECT); 
             gl.uniform1f(this.warpNoiseProgram.uniforms.uNoiseMix, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor1, config.COLOR1.r, config.COLOR1.g, config.COLOR1.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor2, config.COLOR2.r, config.COLOR2.g, config.COLOR2.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor3, config.COLOR3.r, config.COLOR3.g, config.COLOR3.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor4, config.COLOR4.r, config.COLOR4.g, config.COLOR4.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor5, config.COLOR5.r, config.COLOR5.g, config.COLOR5.b, 1.0); 
             LGL.blit(this.noise.write);
             this.noise.swap(); 
         }
@@ -399,7 +404,14 @@ export class Noise{
         // noiseFolder.add(config, 'MONO').name('Mono');
         // noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
         noiseFolder.add(config, 'ERRATA').name('Errata').onFinishChange(this.updateKeywords(this));
-
+        
+        
+        let paletteFolder = gui.addFolder('Palette');
+        paletteFolder.addColor(config, 'COLOR1').name('Color1');
+        paletteFolder.addColor(config, 'COLOR2').name('Color2');
+        paletteFolder.addColor(config, 'COLOR3').name('Color3');
+        paletteFolder.addColor(config, 'COLOR4').name('Color4');
+        paletteFolder.addColor(config, 'COLOR5').name('Color5');
 
         let sunraysFolder = gui.addFolder('Highlights');
         // sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));

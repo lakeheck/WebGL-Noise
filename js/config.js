@@ -43,5 +43,11 @@ export const config = {
     DISPLAY_FLUID: false,
     ERRATA: true,
     SHOWSTATS: true,
-    WARP: true
+    WARP: true,
+    COLOR1: { r: 223, g: 22, b: 43 },
+    COLOR2: { r: 255, g: 255, b: 255 }, 
+    COLOR3: { r: 0, g: 81, b: 164 }, 
+    COLOR4: { r: 0, g: 0, b: 0 }, 
+    COLOR5: { r: 255, g: 255, b: 255 }, 
+    
 };
