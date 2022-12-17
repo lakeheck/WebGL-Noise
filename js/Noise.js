@@ -59,7 +59,7 @@ export class Noise{
     
         //use helper function to create pairs of buffer objects that will be ping pong'd for our sim 
         //this lets us define the buffer objects that we wil want to use for feedback 
-        if (this.dye == null || this.noise == null){
+        if (this.noise == null){
             this.noise = LGL.createDoubleFBO(dyeRes.width, dyeRes.height, rgba.internalFormat, rgba.format, texType, filtering);
         }
         else {//resize if needed 
@@ -133,7 +133,7 @@ export class Noise{
         dt = Math.min(dt, 0.016666); //never want to update slower than 60fps
         this.lastUpdateTime = now;
         this.noiseSeed += dt * config.NOISE_TRANSLATE_SPEED;
-        if (LGL.resizeCanvas() || config.DYE_RESOLUTION != this.noise.height){//resize if needed - NOTE, we need to check for the resolution change => resize since i cant figure out how to call this fxn when the GUI udpates, due to namespace issues (i think)
+        if (LGL.resizeCanvas() || (config.DYE_RESOLUTION != this.noise.height && config.DYE_RESOLUTION != this.noise.width)){//resize if needed - NOTE, we need to check for the resolution change => resize since i cant figure out how to call this fxn when the GUI udpates, due to namespace issues (i think)
             this.initFramebuffers();
         }
         if (!config.PAUSED)
