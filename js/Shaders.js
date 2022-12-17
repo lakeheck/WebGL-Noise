@@ -937,6 +937,8 @@ uniform float uAspect;
 uniform float uLacunarity;
 uniform float uGain;
 uniform int uOctaves;
+uniform sampler2D palette;
+
 
 uniform float uNoiseMix;
 uniform float uFrequency;
@@ -1068,7 +1070,7 @@ return noise;
 }
 
 
-#define FBM(NOISE, SEED) float G=uGain; float freq = 1.0; float a = 1.0; float t = 0.0;for(int i=0; i<8; i++){t+= a*NOISE(freq*st, SEED);freq*=uLacunarity;a*=G;}
+#define FBM(NOISE, SEED) float G=uGain; float freq = 1.0; float a = 1.0; float t = 0.0;for(int i=0; i<uOctaves; i++){t+= a*NOISE(freq*st, SEED);freq*=uLacunarity;a*=G;}
 
 
 float monoSimplex(vec3 st, float seed){ 
@@ -1206,17 +1208,17 @@ return t;
 #define DISP(ANG, DIST, MAX) st.xy = st.xy + vec2(cos(ANG(st)*TWOPI), sin(ANG(st)*TWOPI)) * DIST(st) * MAX(st);
 
 
-// vec4[] palette = {uColor1, uColor2, uColor3, uColor4, uColor5};
+// vec4 test[5] = vec4[5](uColor1, uColor2, uColor3, uColor4, uColor5);
 
 
-vec4 palette[5] = vec4[5](vec4(.875, .0859375, 0.16796875, 1.0), vec4(1.), vec4(0,.3203125, 0.64453125, 1.0), vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0));
+vec4 palettes[5] = vec4[5](vec4(.875, .0859375, 0.16796875, 1.0), vec4(1.), vec4(0,.3203125, 0.64453125, 1.0), vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0));
 
 vec4 fbm(vec3 st, float seed){
     float G=uGain; 
     float freq = 1.0; 
     float a = 1.0; 
     vec4 t = vec4(0.0);
-    for(int i=0; i<8; i++){
+    for(int i=0; i<uOctaves; i++){
     t += a*rgbSimplex(freq*st, seed);
     freq*= uLacunarity;
     //freq = pow(2.0, float(i));
@@ -1271,14 +1273,17 @@ DISP(ang, dis, falloff);
 // DISP(ang, dis2, 0.5);
 float seed = 1.8;
 float noise = noise(st);
-int idx = int(floor(noise*5.0));
+float idx = (floor(noise*5.0));
 float pct = fract(noise *5.0);
-vec4 color = mix(palette[int(mod(float(idx),5.0))], palette[int(mod(float(idx)+1.0,5.0))], smoothstep(0.,1.,pct));
+// vec4 pal2 = texture(palette, vec2((idx+1.0)/5.0,0));
+// vec4 pal1 = texture(palette, vec2(idx/5.0,0));
+// vec4 color = mix(pal1, pal2, smoothstep(0., 1., pct));
+vec4 color = mix(palettes[int(mod(float(idx),5.0))], palettes[int(mod(float(idx)+1.0,5.0))], smoothstep(0.,1.,pct));
 // FBM(recursiveWarpNoise, 2.4);
 // vec4 color = vec4(noise);
 //output
 
-fragColor = (color);
+fragColor = ((color));
 
 }
 `);

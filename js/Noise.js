@@ -35,6 +35,29 @@ export class Noise{
     sunrays;
     sunraysTemp;
     noise;
+
+    palette = LGL.textureFromPixelArray(gl, new Uint8Array([223,
+        21,
+        42,
+        255,
+        255,
+        255,
+        255,
+        255,
+        0,
+        81,
+        164,
+        255,
+        0,
+        0,
+        0,
+        255,
+        255,
+        255,
+        255,
+        255]), gl.RGBA, 5, 1);      
+        
+    
     
     initStats(){
         this.stats = new LGL.Stats();
@@ -164,10 +187,12 @@ export class Noise{
             gl.uniform1f(this.warpNoiseProgram.uniforms.uRidgeThreshold, config.RIDGE); 
             gl.uniform1f(this.warpNoiseProgram.uniforms.uLacunarity, config.LACUNARITY); 
             gl.uniform1f(this.warpNoiseProgram.uniforms.uGain, config.GAIN); 
-            gl.uniform1f(this.warpNoiseProgram.uniforms.uOctaves, config.OCTAVES); 
-            gl.uniform3f(this.warpNoiseProgram.uniforms.uScale, 1., 1., 1.); 
+            gl.uniform1i(this.warpNoiseProgram.uniforms.uOctaves, config.OCTAVES); 
+            gl.uniform3f(this.warpNoiseProgram.uniforms.uScale, config.SCALEX, config.SCALEY, 1.); 
             gl.uniform1f(this.warpNoiseProgram.uniforms.uAspect, config.ASPECT); 
-            gl.uniform1f(this.warpNoiseProgram.uniforms.uNoiseMix, 1.0); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uNoiseMix, config.NOISECROSS); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uMaxDist, config.MAXDIST); 
+            gl.uniform1i(this.warpNoiseProgram.uniforms.palette, this.palette);
             gl.uniform4f(this.warpNoiseProgram.uniforms.uColor1, config.COLOR1.r, config.COLOR1.g, config.COLOR1.b, 1.0); 
             gl.uniform4f(this.warpNoiseProgram.uniforms.uColor2, config.COLOR2.r, config.COLOR2.g, config.COLOR2.b, 1.0); 
             gl.uniform4f(this.warpNoiseProgram.uniforms.uColor3, config.COLOR3.r, config.COLOR3.g, config.COLOR3.b, 1.0); 
@@ -393,17 +418,21 @@ export class Noise{
         
         let noiseFolder = gui.addFolder('Noise');
         noiseFolder.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
-        noiseFolder.add(config, 'PERIOD', 0, 10.0).name('Period');
-        noiseFolder.add(config, 'EXPONENT', 0, 4.0).name('Exponent');
-        noiseFolder.add(config, 'RIDGE', 0, 1.5).name('Ridge');
-        noiseFolder.add(config, 'AMP', 0, 4.0).name('Amplitude');
-        noiseFolder.add(config, 'LACUNARITY', 0, 4).name('Lacunarity');
+        noiseFolder.add(config, 'PERIOD', 0.05, 1.0).name('Period');
+        noiseFolder.add(config, 'EXPONENT', 0.1, 2.0).name('Exponent');
+        noiseFolder.add(config, 'RIDGE', 0.6, 2.5).name('Ridge');
+        noiseFolder.add(config, 'AMP', 0.1, 1.5).name('Amplitude');
+        noiseFolder.add(config, 'LACUNARITY', 0, 3).name('Lacunarity');
         noiseFolder.add(config, 'NOISE_TRANSLATE_SPEED', 0, 2).name('Noise Translate Speed');
         noiseFolder.add(config, 'GAIN', 0.0, 1.0).name('Gain');
+        noiseFolder.add(config, 'NOISECROSS', 0.0, 1.0).name('Base Warp');
+        noiseFolder.add(config, 'MAXDIST', 0.0, 1.0).name('Warp Distance');
         noiseFolder.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
+        noiseFolder.add(config, 'SCALEX', 0.01, 2).name('Scale X');
+        noiseFolder.add(config, 'SCALEY', 0.01, 2).name('Scale Y');
         // noiseFolder.add(config, 'MONO').name('Mono');
         // noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
-        noiseFolder.add(config, 'ERRATA').name('Errata').onFinishChange(this.updateKeywords(this));
+        // noiseFolder.add(config, 'ERRATA').name('Errata').onFinishChange(this.updateKeywords(this));
         
         
         let paletteFolder = gui.addFolder('Palette');
@@ -412,6 +441,8 @@ export class Noise{
         paletteFolder.addColor(config, 'COLOR3').name('Color3');
         paletteFolder.addColor(config, 'COLOR4').name('Color4');
         paletteFolder.addColor(config, 'COLOR5').name('Color5');
+
+        gui.add(config, 'RESET').name('Reset').onFinishChange(reset);
 
         let sunraysFolder = gui.addFolder('Highlights');
         // sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));
@@ -430,8 +461,19 @@ export class Noise{
     
         if (LGL.isMobile())
             gui.close();
+
+
+        function reset(){
+            noiseFolder.__controllers.forEach(c => c.setValue(c.initialValue));
+        }
+
+    }
+    resetGUI(){
+        this.gui.forEach(controller => controller.setValue(controller.initialValue));
     }
 }
+
+
 
 
 function drawColor (target, color, colorProgram) {
