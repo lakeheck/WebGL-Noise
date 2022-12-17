@@ -42,5 +42,6 @@ export const config = {
     NOISE_TRANSLATE_SPEED: 0.15,
     DISPLAY_FLUID: false,
     ERRATA: true,
-    SHOWSTATS: true
+    SHOWSTATS: true,
+    WARP: true
 };

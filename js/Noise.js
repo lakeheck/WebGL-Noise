@@ -27,7 +27,7 @@ export class Noise{
     sunraysProgram            = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysShader);
     noiseProgram              = new LGL.Program(GLSL.noiseVertexShader, GLSL.noiseShader); //noise generator 
     errataNoiseProgram        = new LGL.Program(GLSL.noiseVertexShader, GLSL.errataNoiseShader); //noise generator    
-
+    warpNoiseProgram          = new LGL.Program(GLSL.noiseVertexShader, GLSL.malformedNoiseShader); 
 
 
     bloom;
@@ -154,7 +154,24 @@ export class Noise{
     step (dt) {
         gl.disable(gl.BLEND);
 
-        if(config.ERRATA){
+        if(config.WARP){
+            this.warpNoiseProgram.bind();
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uPeriod, config.PERIOD); 
+            gl.uniform3f(this.warpNoiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uAmplitude, config.AMP); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uSeed, this.noiseSeed); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uExponent, config.EXPONENT); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uRidgeThreshold, config.RIDGE); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uLacunarity, config.LACUNARITY); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uGain, config.GAIN); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uOctaves, config.OCTAVES); 
+            gl.uniform3f(this.warpNoiseProgram.uniforms.uScale, 1., 1., 1.); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uAspect, config.ASPECT); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uNoiseMix, 1.0); 
+            LGL.blit(this.noise.write);
+            this.noise.swap(); 
+        }
+        else if(config.ERRATA){
             this.errataNoiseProgram.bind();
             gl.uniform1f(this.errataNoiseProgram.uniforms.uPeriod, config.PERIOD); 
             gl.uniform3f(this.errataNoiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
@@ -170,6 +187,7 @@ export class Noise{
             LGL.blit(this.noise.write);
             this.noise.swap(); 
         }
+
         else{
             this.noiseProgram.bind();
             gl.uniform1f(this.noiseProgram.uniforms.uPeriod, config.PERIOD); 
