@@ -27,7 +27,7 @@ export class Noise{
     sunraysProgram            = new LGL.Program(GLSL.baseVertexShader, GLSL.sunraysShader);
     noiseProgram              = new LGL.Program(GLSL.noiseVertexShader, GLSL.noiseShader); //noise generator 
     errataNoiseProgram        = new LGL.Program(GLSL.noiseVertexShader, GLSL.errataNoiseShader); //noise generator    
-
+    warpNoiseProgram          = new LGL.Program(GLSL.noiseVertexShader, GLSL.malformedNoiseShader); 
 
 
     bloom;
@@ -35,6 +35,29 @@ export class Noise{
     sunrays;
     sunraysTemp;
     noise;
+
+    palette = LGL.textureFromPixelArray(gl, new Uint8Array([223,
+        21,
+        42,
+        255,
+        255,
+        255,
+        255,
+        255,
+        0,
+        81,
+        164,
+        255,
+        0,
+        0,
+        0,
+        255,
+        255,
+        255,
+        255,
+        255]), gl.RGBA, 5, 1);      
+        
+    
     
     initStats(){
         this.stats = new LGL.Stats();
@@ -154,7 +177,31 @@ export class Noise{
     step (dt) {
         gl.disable(gl.BLEND);
 
-        if(config.ERRATA){
+        if(config.WARP){
+            this.warpNoiseProgram.bind();
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uPeriod, config.PERIOD); 
+            gl.uniform3f(this.warpNoiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uAmplitude, config.AMP); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uSeed, this.noiseSeed); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uExponent, config.EXPONENT); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uRidgeThreshold, config.RIDGE); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uLacunarity, config.LACUNARITY); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uGain, config.GAIN); 
+            gl.uniform1i(this.warpNoiseProgram.uniforms.uOctaves, config.OCTAVES); 
+            gl.uniform3f(this.warpNoiseProgram.uniforms.uScale, config.SCALEX, config.SCALEY, 1.); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uAspect, config.ASPECT); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uNoiseMix, config.NOISECROSS); 
+            gl.uniform1f(this.warpNoiseProgram.uniforms.uMaxDist, config.MAXDIST); 
+            gl.uniform1i(this.warpNoiseProgram.uniforms.palette, this.palette);
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor1, config.COLOR1.r, config.COLOR1.g, config.COLOR1.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor2, config.COLOR2.r, config.COLOR2.g, config.COLOR2.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor3, config.COLOR3.r, config.COLOR3.g, config.COLOR3.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor4, config.COLOR4.r, config.COLOR4.g, config.COLOR4.b, 1.0); 
+            gl.uniform4f(this.warpNoiseProgram.uniforms.uColor5, config.COLOR5.r, config.COLOR5.g, config.COLOR5.b, 1.0); 
+            LGL.blit(this.noise.write);
+            this.noise.swap(); 
+        }
+        else if(config.ERRATA){
             this.errataNoiseProgram.bind();
             gl.uniform1f(this.errataNoiseProgram.uniforms.uPeriod, config.PERIOD); 
             gl.uniform3f(this.errataNoiseProgram.uniforms.uTranslate, 0.0, 0.0, 0.0);
@@ -170,6 +217,7 @@ export class Noise{
             LGL.blit(this.noise.write);
             this.noise.swap(); 
         }
+
         else{
             this.noiseProgram.bind();
             gl.uniform1f(this.noiseProgram.uniforms.uPeriod, config.PERIOD); 
@@ -368,40 +416,68 @@ export class Noise{
         //dat is a library developed by Googles Data Team for building JS interfaces. Needs to be included in project directory 
         var gui = new dat.GUI({ width: 300 });
         
-        let noiseFolder = gui.addFolder('Noise');
-        noiseFolder.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
-        noiseFolder.add(config, 'PERIOD', 0, 10.0).name('Period');
-        noiseFolder.add(config, 'EXPONENT', 0, 4.0).name('Exponent');
-        noiseFolder.add(config, 'RIDGE', 0, 1.5).name('Ridge');
-        noiseFolder.add(config, 'AMP', 0, 4.0).name('Amplitude');
-        noiseFolder.add(config, 'LACUNARITY', 0, 4).name('Lacunarity');
-        noiseFolder.add(config, 'NOISE_TRANSLATE_SPEED', 0, 2).name('Noise Translate Speed');
+        gui.add(config, 'DYE_RESOLUTION', {'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name(parName).onFinishChange(updateGUI(this));
+        gui.add(config, 'NOISE_TRANSLATE_SPEED', 0, .5).name('Speed');
+        gui.add(config, 'RESET').name('Reset').onFinishChange(reset);
+        gui.add(config, 'RANDOM').name('Randomize').onFinishChange(randomizeParams);
+        
+        let noiseFolder = gui.addFolder('Noise Settings');
+        noiseFolder.add(config, 'PERIOD', 0.05, 1.0).name('Period');
+        noiseFolder.add(config, 'EXPONENT', 0.1, 2.0).name('Exponent');
+        noiseFolder.add(config, 'RIDGE', 0.6, 2.5).name('Ridge');
+        noiseFolder.add(config, 'AMP', 0.1, 1.5).name('Amplitude');
+        noiseFolder.add(config, 'LACUNARITY', 0, 3).name('Lacunarity');
         noiseFolder.add(config, 'GAIN', 0.0, 1.0).name('Gain');
+        noiseFolder.add(config, 'NOISECROSS', 0.0, 1.0).name('Base Warp');
+        noiseFolder.add(config, 'MAXDIST', 0.0, 1.0).name('Warp Distance');
         noiseFolder.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
-        // noiseFolder.add(config, 'MONO').name('Mono');
-        // noiseFolder.add(config, 'SHADING').name('Shading').onFinishChange(this.updateKeywords(this));
-        noiseFolder.add(config, 'ERRATA').name('Errata').onFinishChange(this.updateKeywords(this));
+        noiseFolder.add(config, 'SCALEX', 0.1, 2).name('Scale X');
+        noiseFolder.add(config, 'SCALEY', 0.1, 2).name('Scale Y');
+        
+        
+        // let paletteFolder = gui.addFolder('Palette');
+        // paletteFolder.addColor(config, 'COLOR1').name('Color1');
+        // paletteFolder.addColor(config, 'COLOR2').name('Color2');
+        // paletteFolder.addColor(config, 'COLOR3').name('Color3');
+        // paletteFolder.addColor(config, 'COLOR4').name('Color4');
+        // paletteFolder.addColor(config, 'COLOR5').name('Color5');
 
-
-        let sunraysFolder = gui.addFolder('Highlights');
-        // sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(this.updateKeywords(this));
-        sunraysFolder.add(config, 'SUNRAYS_WEIGHT', 0.01, 1.0).name('weight');
+        
     
         //create a function to assign to a button, here linking my github
         let github = gui.add({ fun : () => {
             window.open('https://github.com/lakeheck/');
-            ga('send', 'event', 'link button', 'github');
         } }, 'fun').name('Github');
         github.__li.className = 'cr function bigFont';
         github.__li.style.borderLeft = '3px solid #8C8C8C';
-        let githubIcon = document.createElement('span');
-        github.domElement.parentElement.appendChild(githubIcon);
-        githubIcon.className = 'icon github';
+
+        let portfolio = gui.add({ fun : () => {
+            window.open('https://www.lakeheckaman.com');
+        } }, 'fun').name('Portfolio');
+        portfolio.__li.className = 'cr function bigFont';
+        portfolio.__li.style.borderLeft = '3px solid #1C5C1C';
+
     
         if (LGL.isMobile())
             gui.close();
+
+
+        function reset(){
+            noiseFolder.__controllers.forEach(c => c.setValue(c.initialValue));
+        }
+
+
+        function randomizeParams(){
+            noiseFolder.__controllers.forEach(c => c.setValue(Math.random()*(c.__max - c.__min) + c.__min));
+        }
+
+    }
+    resetGUI(){
+        this.gui.forEach(controller => controller.setValue(controller.initialValue));
     }
 }
+
+
 
 
 function drawColor (target, color, colorProgram) {

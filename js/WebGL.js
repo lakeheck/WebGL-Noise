@@ -873,3 +873,16 @@ Stats.Panel = function ( name, fg, bg ) {
 	};
 
 };
+
+export function textureFromPixelArray(gl, dataArray, type, width, height) {
+    var dataTypedArray = new Uint8Array(dataArray); // Don't need to do this if the data is already in a typed array
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, type, width, height, 0, type, gl.UNSIGNED_BYTE, dataTypedArray);
+    // Other texture setup here, like filter modes and mipmap generation
+    return texture;
+}
+
+// RGB Texture:
+// For a 16x16 texture the array must have at least 768 values in it (16x16x3)
+// var rgbTex = textureFromPixelArray(gl,, gl.RGB, 16, 16);

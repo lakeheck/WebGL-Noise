@@ -13,7 +13,6 @@ if (LGL.isMobile()) {
 LGL.resizeCanvas();
 
 
-
 let n = new Noise();
 n.initFramebuffers();
 n.startGUI();

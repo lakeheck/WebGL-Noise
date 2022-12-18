@@ -2,35 +2,22 @@ export const config = {
     SIM_RESOLUTION: 256, //simres
     DYE_RESOLUTION: 1024, //output res 
     ASPECT: 1.0,
-    FLOW: 0.0066,
-    SPLAT_FLOW: 0.5,
-    VELOCITYSCALE: 1.0,
     CAPTURE_RESOLUTION: 1024, //screen capture res 
     DENSITY_DISSIPATION: .85, //def need to figure out this one, think perhaps bc im squaring the color in splatColor
-    VELOCITY_DISSIPATION: 2.15,
-    PRESSURE: 0.8,
-    PRESSURE_ITERATIONS: 30,
-    CURL: 30,
-    SPLAT_RADIUS: 0.25,
-    SPLAT_FORCE: 6000,
-    SHADING: true,
-    COLORFUL: false,
-    COLOR_UPDATE_SPEED: 10,
+    SHADING: false,
     PAUSED: false,
-    BACK_COLOR: { r: 0, g: 0, b: 0 },
-    TRANSPARENT: false,
+    //not used 
     BLOOM: false,
     BLOOM_ITERATIONS: 8,
     BLOOM_RESOLUTION: 256,
     BLOOM_INTENSITY: 0.8,
     BLOOM_THRESHOLD: 0.6,
     BLOOM_SOFT_KNEE: 0.7,
-    SUNRAYS: true,
+    //not used 
+    SUNRAYS: false,
     SUNRAYS_RESOLUTION: 196,
     SUNRAYS_WEIGHT: 0.6,
-    FORCE_MAP_ENABLE: true,
-    DENSITY_MAP_ENABLE: true, 
-    COLOR_MAP_ENABLE:true,
+    //noise settings 
     EXPONENT: 2.5,
     PERIOD: 1.0,
     RIDGE: 0.9,
@@ -40,7 +27,21 @@ export const config = {
     OCTAVES: 4,
     MONO: false,
     NOISE_TRANSLATE_SPEED: 0.15,
-    DISPLAY_FLUID: false,
     ERRATA: true,
-    SHOWSTATS: true
+    SHOWSTATS: true,
+    WARP: true,
+    //TODO - need to connect palette 
+    COLOR1: { r: 223, g: 22, b: 43 },
+    COLOR2: { r: 255, g: 255, b: 255 }, 
+    COLOR3: { r: 0, g: 81, b: 164 }, 
+    COLOR4: { r: 0, g: 0, b: 0 }, 
+    COLOR5: { r: 255, g: 255, b: 255 }, 
+    // warp settings 
+    NOISECROSS: 1., 
+    MAXDIST: 1.,
+    SCALEX: 1.,
+    SCALEY: 1.,
+    RESET: false,
+    RANDOM: false
+    
 };
