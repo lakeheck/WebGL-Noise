@@ -1,6 +1,6 @@
 export const config = {
     SIM_RESOLUTION: 256, //simres
-    DYE_RESOLUTION: 1024, //output res 
+    DYE_RESOLUTION: 512, //output res 
     ASPECT: 1.0,
     CAPTURE_RESOLUTION: 1024, //screen capture res 
     DENSITY_DISSIPATION: .85, //def need to figure out this one, think perhaps bc im squaring the color in splatColor
@@ -37,8 +37,8 @@ export const config = {
     COLOR4: { r: 0, g: 0, b: 0 }, 
     COLOR5: { r: 255, g: 255, b: 255 }, 
     // warp settings 
-    NOISECROSS: 1., 
-    MAXDIST: 1.,
+    NOISECROSS: 0., 
+    MAXDIST: 0.,
     SCALEX: 1.,
     SCALEY: 1.,
     RESET: false,

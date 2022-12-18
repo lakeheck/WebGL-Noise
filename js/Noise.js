@@ -428,11 +428,13 @@ export class Noise{
         noiseFolder.add(config, 'AMP', 0.1, 1.5).name('Amplitude');
         noiseFolder.add(config, 'LACUNARITY', 0, 3).name('Lacunarity');
         noiseFolder.add(config, 'GAIN', 0.0, 1.0).name('Gain');
-        noiseFolder.add(config, 'NOISECROSS', 0.0, 1.0).name('Base Warp');
-        noiseFolder.add(config, 'MAXDIST', 0.0, 1.0).name('Warp Distance');
         noiseFolder.add(config, 'OCTAVES', 0, 8).name('Octaves').step(1);
-        noiseFolder.add(config, 'SCALEX', 0.1, 2).name('Scale X');
-        noiseFolder.add(config, 'SCALEY', 0.1, 2).name('Scale Y');
+        
+        let warpFolder = gui.addFolder('Warp Settings')
+        warpFolder.add(config, 'NOISECROSS', 0.0, 1.0).name('Apply Noise Settings to Warp');
+        warpFolder.add(config, 'MAXDIST', 0.0, 1.0).name('Warp Distance');
+        warpFolder.add(config, 'SCALEX', 0.1, 2).name('Scale X');
+        warpFolder.add(config, 'SCALEY', 0.1, 2).name('Scale Y');
         
         
         // let paletteFolder = gui.addFolder('Palette');
@@ -464,11 +466,14 @@ export class Noise{
 
         function reset(){
             noiseFolder.__controllers.forEach(c => c.setValue(c.initialValue));
+            warpFolder.__controllers.forEach(c => c.setValue(c.initialValue));
         }
 
 
         function randomizeParams(){
             noiseFolder.__controllers.forEach(c => c.setValue(Math.random()*(c.__max - c.__min) + c.__min));
+            warpFolder.__controllers.forEach(c => c.setValue(Math.random()*(c.__max - c.__min) + c.__min));
+
         }
 
     }
